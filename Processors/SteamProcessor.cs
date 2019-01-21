@@ -38,9 +38,8 @@ namespace SteamGiveawaysBot.Processors
             SendKeys(By.Id("input_username"), account.Username);
             SendKeys(By.Id("input_password"), account.Password);
 
-            Wait(DefaultWait);
-            
             Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
+            Wait(DefaultWait);
         }
 
         public void GatherProfileInfo()

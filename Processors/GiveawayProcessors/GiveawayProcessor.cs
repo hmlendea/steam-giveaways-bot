@@ -15,6 +15,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public abstract class GiveawayProcessor : WebProcessor
     {
+        public abstract string HomePageUrl { get; }
+
         public abstract string LogInUrl { get; }
 
         public abstract int MinimumPoints { get; }
@@ -30,5 +32,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         }
 
         public abstract void LogIn();
+        
+        public abstract void GetGiveaway();
     }
 }

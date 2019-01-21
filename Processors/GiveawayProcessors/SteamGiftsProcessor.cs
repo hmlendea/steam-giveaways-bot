@@ -15,11 +15,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public sealed class SteamGiftsProcessor : GiveawayProcessor
     {
+        public override string HomePageUrl => "https://www.steamgifts.com/";
+
         public override string LogInUrl => "https://www.steamgifts.com/";
 
         public override int MinimumPoints => 20;
 
         public override int MaximumPoints => 400;
+
+        int unclaimedRewards;
 
         public SteamGiftsProcessor(IWebDriver driver, AccountDetails account)
             : base(driver, account)
@@ -41,6 +45,19 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
         }
 
+        public override void GetGiveaway()
+        {
+            int currentPoints = GetCurrentPoints();
+            int currentRewards = GetCurrentRewards();
+
+            // TODO: Improve this - currently if a gift is claimed and another one immediately won,
+            // it won't notice the change.
+            if (currentRewards > 0 && currentRewards > unclaimedRewards)
+            {
+                Log.Info($"$Unclaimed rewards ({currentRewards})");
+            }
+        }
+
         void Register()
         {
             SendKeys(By.Name("username"), account.Username);
@@ -53,6 +70,25 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             // Complete registration
             Click(By.XPath(@"//form/div[6]/div[1]"));
+        }
+
+        int GetCurrentPoints()
+        {
+            IWebElement pointsSpan = GetElement(By.ClassName("nav__points"));
+
+            return int.Parse(pointsSpan.Text);
+        }
+
+        int GetCurrentRewards()
+        {
+            IWebElement rewardsElement = GetElement(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"));
+
+            if (string.IsNullOrWhiteSpace(rewardsElement.Text))
+            {
+                return 0;
+            }
+
+            return int.Parse(rewardsElement.Text);
         }
     }
 }
