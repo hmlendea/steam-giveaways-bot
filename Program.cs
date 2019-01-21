@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using Microsoft.Extensions.Configuration;
+
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -19,10 +21,12 @@ namespace SteamGiveawaysBot
     {
         static void Main(string[] args)
         {
+            IConfiguration config = LoadConfiguration();
+
             AccountDetails account = new AccountDetails
             {
-                Username = args[0],
-                Password = args[1]
+                Username = config["steamUsername"],
+                Password = config["steamPassword"]
             };
 
             SetUpAccount(account);
@@ -59,6 +63,17 @@ namespace SteamGiveawaysBot
             driver.Manage().Window.Maximize();
 
             return driver;
+        }
+
+        static IConfiguration LoadConfiguration()
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+ 
+            return new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
         }
     }
 }
