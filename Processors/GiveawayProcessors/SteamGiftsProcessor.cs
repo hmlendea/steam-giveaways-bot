@@ -60,8 +60,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         void Register()
         {
-            SendKeys(By.Name("username"), account.Username);
-            SendKeys(By.Name("email"), account.EmailAddress);
+            SetText(By.Name("username"), account.Username);
+            SetText(By.Name("email"), account.EmailAddress);
             SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
 
             // Say no to emails
@@ -74,21 +74,21 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GetCurrentPoints()
         {
-            IWebElement pointsSpan = GetElement(By.ClassName("nav__points"));
+            string pointsString = GetText(By.ClassName("nav__points"));
 
-            return int.Parse(pointsSpan.Text);
+            return int.Parse(pointsString);
         }
 
         int GetCurrentRewards()
         {
-            IWebElement rewardsElement = GetElement(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"));
+            string rewardsString = GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"));
 
-            if (string.IsNullOrWhiteSpace(rewardsElement.Text))
+            if (string.IsNullOrWhiteSpace(rewardsString))
             {
                 return 0;
             }
 
-            return int.Parse(rewardsElement.Text);
+            return int.Parse(rewardsString);
         }
     }
 }
