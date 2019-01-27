@@ -65,8 +65,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
 
             // Say no to emails
-            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[2]"));
-            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]"));
+            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
+            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
 
             // Complete registration
             Click(By.XPath(@"//form/div[6]/div[1]"));
