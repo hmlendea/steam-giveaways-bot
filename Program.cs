@@ -47,6 +47,20 @@ namespace SteamGiveawaysBot
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
             Log.Info($"Logging in the SteamGifts account");
             steamGiftsProcessor.LogIn();
+            
+            Log.Info($"Starting the SteamGifts bot");
+            steamGiftsProcessor.Start();
+            
+            while (true)
+            {
+                string cmd = Console.ReadLine().ToLower();
+
+                if (cmd == "exit")
+                {
+                    steamGiftsProcessor.Stop();
+                    Environment.Exit((int)ExitCodes.Success);
+                }
+            }
         }
 
         static IWebDriver SetupDriver()

@@ -19,19 +19,52 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string LogInUrl => "https://www.steamgifts.com/";
 
-        public override int MinimumPoints => 20;
-
-        public override int MaximumPoints => 400;
-
         int unclaimedRewards;
+        Giveaway lastProcessedGiveaway;
 
         public SteamGiftsProcessor(IWebDriver driver, AccountDetails account)
             : base(driver, account)
         {
+            MinimumPoints = 20;
+            MaximumPoints = 400;
+        }
+
+        public override void GatherInfo()
+        {
+            Log.Info($"Gathering information");
+            GoToUrl(HomePageUrl);
+
+            By loginButtonSelector = By.ClassName("nav__sits");
+
+            if (ElementVisible(loginButtonSelector))
+            {
+                LoggedIn = false;
+                return;
+            }
+
+            LoggedIn = true;
+
+            CurrentPoints = GetCurrentPoints();
+            CurrentRewards = GetCurrentRewards();
+
+            Log.Info($"Current points: {CurrentPoints}");
+            Log.Info($"Current rewards: {CurrentRewards}");
+
+            if (CurrentPoints < MinimumPoints)
+            {
+                TimerInterval = RechargeInterval;
+
+                return;
+            }
+            else
+            {
+                TimerInterval = DefaultInterval;
+            }
         }
 
         public override void LogIn()
         {
+            Log.Info($"Logging in {account.Username}");
             GoToUrl(LogInUrl);
 
             Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
@@ -45,21 +78,75 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
         }
 
-        public override void GetGiveaway()
+        protected override Giveaway FindGiveaway()
         {
-            int currentPoints = GetCurrentPoints();
-            int currentRewards = GetCurrentRewards();
+            Log.Info($"Finding a giveaway to join");
+            GoToUrl(HomePageUrl);
 
-            // TODO: Improve this - currently if a gift is claimed and another one immediately won,
-            // it won't notice the change.
-            if (currentRewards > 0 && currentRewards > unclaimedRewards)
+            By giveawaySelector = By.XPath(@"//div[@class='widget-container']/div[2]/div[3]/div/div/div/h2/a");
+
+            foreach (IWebElement element in GetElements(giveawaySelector))
             {
-                Log.Info($"$Unclaimed rewards ({currentRewards})");
+                Giveaway giveaway = new Giveaway(element.GetAttribute("href"));
+
+                if (lastProcessedGiveaway != giveaway)
+                {
+                    return giveaway;
+                }
             }
+
+            return null;
+        }
+
+        protected override void ProcessGiveaway(Giveaway giveaway)
+        {
+            Log.Info($"Processing giveaway '{giveaway.GiveawayCode}'");
+            GoToUrl(giveaway.Url);
+
+            By gameTitleSelector = By.ClassName("featured__heading__medium");
+            By priceSelector = By.ClassName("featured__heading__small");
+            By remainingTimeSelector = By.XPath(@"//div[@class='featured__summary']/div[2]/div[1]/span");
+            By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+            By enterButtonSelector = By.ClassName("sidebar__entry-insert");
+
+            string gameTitle = GetText(gameTitleSelector);
+            string priceString = GetElements(priceSelector).Last().Text;
+            string endTimeUnixTimestamp = GetAttribute(remainingTimeSelector, "data-timestamp");
+            string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
+
+            int price = int.Parse(priceSubstring);
+
+            DateTime endTime = DateTimeUtils.FromUnixTime(endTimeUnixTimestamp);
+
+            Log.Info($"Giveaway info retrieved for '{giveaway.GiveawayCode}': \"{gameTitle}\" ({price}P), ends at {endTime}");
+
+            if (endTime > DateTime.Now)
+            {
+                TimerInterval = endTime - DateTime.Now;
+            }
+
+            if (ElementVisible(errorSelector))
+            {
+                string errorText = GetText(errorSelector).Trim();;
+
+                if (errorText.Contains("Remove Entry"))
+                {
+                    errorText = "Already entered";
+                }
+
+                Log.Warn($"Cannot enter '{giveaway.GiveawayCode}': \"{errorText}\"");
+            }
+
+            Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'");
+            Click(enterButtonSelector);
+
+            lastProcessedGiveaway = giveaway;
         }
 
         void Register()
         {
+            Log.Info($"Registering user '{account.Username}'");
+
             SetText(By.Name("username"), account.Username);
             SetText(By.Name("email"), account.EmailAddress);
             SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
