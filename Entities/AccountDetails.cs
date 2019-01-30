@@ -37,6 +37,16 @@ namespace SteamGiveawaysBot.Entities
 
         public string LastName { get; set; }
 
+        public string FullName => $"{FirstName} {LastName}";
+
+        public string SteamProfileUrl => $"https://steamcommunity.com/id/{Username}";
+
+        public decimal SteamGiftsValue { get; set; }
+
+        public bool IsRegisteredSteamGifts { get; set; }
+
+        public bool IsRegisteredIndieGala { get; set; }
+
         public DateTime Birthday { get; set; }
 
         public override string ToString()
@@ -44,7 +54,7 @@ namespace SteamGiveawaysBot.Entities
             return
                 $"{Username}:{Password} ({EmailAddress}). " +
                 $"{FirstName} {LastName} from {Country}. " +
-                $"Born: {Birthday.ToString("dd/MM/yyyy")}.";
+                $"Born: {Birthday.ToString("yyyy/MM/dd")}.";
         }
     }
 }
