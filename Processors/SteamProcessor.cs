@@ -50,13 +50,12 @@ namespace SteamGiveawaysBot.Processors
             GoToUrl(AccountUrl);
 
             By emailAddressSelector = By.XPath(@"//*[@id='main_content']/div[2]/div[4]/div[1]/div[2]/div[1]/span[2]");
-            By avatarSelector = By.XPath(@"//*[@id='global_actions']/a");
             By displayNameSelector = By.ClassName("actual_persona_name");
             By realNameSelector = By.XPath("//div[contains(@class,'header_real_name')]/bdi");
 
             account.EmailAddress = GetText(emailAddressSelector);
 
-            Click(avatarSelector);
+            GoToUrl(account.SteamProfileUrl);
             
             account.DisplayName = GetText(displayNameSelector);
             account.FirstName = GetText(realNameSelector);

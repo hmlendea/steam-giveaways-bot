@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Mail;
 
@@ -11,7 +12,7 @@ namespace SteamGiveawaysBot.Utils
 
         public static string SenderPassword { get; set; }
 
-        public static void SendMail(string username, int unclaimedRewards)
+        public static void SendMail(string username, string giveawayLink, string gameTitle, string gameKey)
         {
             SmtpClient smtp = new SmtpClient();
             smtp.Host = "smtp.gmail.com";
@@ -21,11 +22,14 @@ namespace SteamGiveawaysBot.Utils
             smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtp.Credentials = new NetworkCredential(SenderAddress, SenderPassword);
 
+            Console.WriteLine($"{RecipientAddress} {SenderAddress} {SenderPassword}");
             using (MailMessage mail = new MailMessage())
             {
                 mail.From = new MailAddress(SenderAddress, $"SteamGiveawaysBot");
-                mail.Subject = $"SGB - Unclaimed gifts for {username}";
-                mail.Body = $"You have {unclaimedRewards} unclaimed rewards for the {username} profile!";
+                mail.Subject = $"SGB - '{gameTitle}' key won by {username}";
+                mail.Body =
+                    $"You have won a giveaway for '{gameTitle}': {giveawayLink}" + Environment.NewLine +
+                    $"Here is the key: {gameKey}";
                 mail.To.Add(RecipientAddress);
 
                 smtp.Send(mail);

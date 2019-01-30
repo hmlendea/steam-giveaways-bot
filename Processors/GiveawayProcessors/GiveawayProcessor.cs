@@ -19,6 +19,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public abstract string LogInUrl { get; }
 
+        public abstract string RewardsUrl { get; }
+
         public bool IsRunning { get; private set; }
 
         public bool IsLoggedIn { get; protected set; }
@@ -67,6 +69,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 LogIn();
             }
 
+            if (CurrentRewards > 0)
+            {
+                ProcessRewards();
+            }
+
             timer.Enabled = true;
         }
 
@@ -91,6 +98,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         protected abstract Giveaway FindGiveaway();
         
         protected abstract void ProcessGiveaway(Giveaway giveaway);
+
+        protected abstract void ProcessRewards();
 
         void SetTimer()
         {

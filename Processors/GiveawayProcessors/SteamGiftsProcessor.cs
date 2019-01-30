@@ -19,6 +19,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string LogInUrl => "https://www.steamgifts.com/";
 
+        public override string RewardsUrl => "https://www.steamgifts.com/giveaways/won";
+
         int unclaimedRewards;
         Giveaway lastProcessedGiveaway;
 
@@ -72,7 +74,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override void LogIn()
         {
-            Log.Info($"Logging in {account.Username}");
+            Log.Info($"Logging in {account.Username} on SteamGifts");
             GoToUrl(LogInUrl);
 
             Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
@@ -144,11 +146,49 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 Log.Warn($"Cannot enter '{giveaway.GiveawayCode}': \"{errorText}\"");
             }
-
-            Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'");
-            Click(enterButtonSelector);
+            else
+            {
+                Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'");
+                Click(enterButtonSelector);
+            }
 
             lastProcessedGiveaway = giveaway;
+        }
+
+        protected override void ProcessRewards()
+        {
+            Log.Info($"Processing the rewards ({CurrentRewards})");
+            GoToUrl(RewardsUrl);
+
+            By rewardItemSelector = By.ClassName("table__row-inner-wrap");
+
+            List<IWebElement> rewardItems = GetElements(rewardItemSelector);
+
+            for (int i = 0; i < rewardItems.Count; i++)
+            {
+                By unreceivedRadioSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[4]/div[1]/i[contains(@class,'fa-circle-o')]");
+                By keySelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{1}]/div[3]");
+                By gameTitleSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[2]/p/a");
+                By receivedRadioSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[4]/div[1]/i");
+
+                if (!ElementVisible(unreceivedRadioSelector))
+                {
+                    continue;
+                }
+
+                string gameKey = GetText(keySelector).Trim();
+
+                if (gameKey.Length < 6)
+                {
+                    continue;
+                }
+
+                string gameTitle = GetText(gameTitleSelector);
+                string giveawayLink = GetHyperlink(gameTitleSelector);
+
+                MailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
+                Click(receivedRadioSelector);
+            }
         }
 
         void Register()

@@ -29,6 +29,10 @@ namespace SteamGiveawaysBot
                 Password = config["steamPassword"]
             };
 
+            MailNotifier.RecipientAddress = config["mailRecipientAddress"];
+            MailNotifier.SenderAddress = config["mailSenderAddress"];
+            MailNotifier.SenderPassword = config["mailSenderPassword"];
+
             SetUpAccount(account);
         }
 
@@ -67,6 +71,7 @@ namespace SteamGiveawaysBot
         {
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
+            options.AddArgument("headless");
             options.AddArgument("--silent");
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
