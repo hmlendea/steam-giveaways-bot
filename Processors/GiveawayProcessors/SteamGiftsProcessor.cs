@@ -37,9 +37,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             GoToUrl(HomePageUrl);
 
             By loginButtonSelector = By.ClassName("nav__sits");
+            By pointsSelector = By.ClassName("nav__points");
             By suspensionsButtonSelector = By.XPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
 
-            if (ElementVisible(loginButtonSelector))
+            if (ElementVisible(loginButtonSelector) || !ElementVisible(pointsSelector))
             {
                 IsLoggedIn = false;
                 return;

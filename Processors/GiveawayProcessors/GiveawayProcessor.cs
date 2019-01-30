@@ -65,7 +65,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             SetTimer();
         }
 
-        public void Start()
+        public void Run()
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
             IsRunning = true;
@@ -80,21 +80,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     LogIn();
                 }
 
-                if (CurrentRewards > 0)
-                {
-                    if (LastRewardsChekingDate == null ||
-                        LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
-                    {
-                        ProcessRewards();
-                    }
-                }
-
                 timer.Enabled = true;
             }
             catch (Exception ex)
             {
                 Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 Stop();
+                throw;
             }
         }
 
@@ -152,11 +144,23 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             try
             {
+                GatherInfo();
+
+                if (CurrentRewards > 0)
+                {
+                    if (LastRewardsChekingDate == null ||
+                        LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
+                    {
+                        ProcessRewards();
+                    }
+                }
+
                 JoinGiveaway();
             }
             catch
             {
                 Stop();
+                throw;
             }
         }
     }
