@@ -17,6 +17,7 @@ namespace SteamGiveawaysBot.Entities
             { Portuguese.Code, Portuguese },
             { Romanian.Code, Romanian },
             { Russian.Code, Russian },
+            { Serbocroation.Code, Serbocroation },
             { Spanish.Code, Spanish }
         };
 
@@ -39,6 +40,7 @@ namespace SteamGiveawaysBot.Entities
         public static Language Portuguese => new Language("POR", PutSpacesInName(nameof(Portuguese)));
         public static Language Romanian => new Language("RMN", PutSpacesInName(nameof(Romanian)));
         public static Language Russian => new Language("RUS", PutSpacesInName(nameof(Russian)));
+        public static Language Serbocroation => new Language("SER", PutSpacesInName(nameof(Serbocroation)));
         public static Language Spanish => new Language("SPA", PutSpacesInName(nameof(Spanish)));
 
         public static IEnumerable<Language> Values => languages.Values;
