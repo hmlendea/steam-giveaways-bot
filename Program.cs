@@ -19,11 +19,15 @@ namespace SteamGiveawaysBot
 {
     public sealed class Program
     {
+        static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
+
+        static AccountDetails account;
+
         static void Main(string[] args)
         {
             IConfiguration config = LoadConfiguration();
 
-            AccountDetails account = new AccountDetails
+            account = new AccountDetails
             {
                 Username = config["steamUsername"],
                 Password = config["steamPassword"]
@@ -33,10 +37,12 @@ namespace SteamGiveawaysBot
             MailNotifier.SenderAddress = config["mailSenderAddress"];
             MailNotifier.SenderPassword = config["mailSenderPassword"];
 
-            SetUpAccount(account);
+            SetUpAccount();
+
+            Console.ReadLine();
         }
 
-        static void SetUpAccount(AccountDetails account)
+        static void SetUpAccount()
         {
             Log.Info($"Setting up the driver");
             IWebDriver driver = SetupDriver();
@@ -49,19 +55,8 @@ namespace SteamGiveawaysBot
             steamProcessor.GatherProfileInfo();
 
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-            steamGiftsProcessor.LogIn();
+            steamGiftsProcessor.Stopped += steamGiftsProcessor_OnStopped;
             steamGiftsProcessor.Start();
-
-            while (true)
-            {
-                string cmd = Console.ReadLine().ToLower();
-
-                if (cmd == "exit")
-                {
-                    steamGiftsProcessor.Stop();
-                    Environment.Exit((int)ExitCodes.Success);
-                }
-            }
         }
 
         static IWebDriver SetupDriver()
@@ -86,6 +81,13 @@ namespace SteamGiveawaysBot
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
+        }
+
+        static void steamGiftsProcessor_OnStopped(object sender, EventArgs e)
+        {
+            Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
+            Thread.Sleep((int)RetryDelay.TotalMilliseconds);
+            SetUpAccount();
         }
     }
 }

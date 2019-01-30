@@ -35,6 +35,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public int CurrentRewards { get; protected set; }
 
+        public event EventHandler Started;
+
+        public event EventHandler Stopped;
+
         public TimeSpan TimerInterval
         {
             get { return TimeSpan.FromMilliseconds(timer.Interval); }
@@ -65,6 +69,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
             IsRunning = true;
+            OnStarted(new EventArgs());
 
             try
             {
@@ -99,6 +104,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             IsRunning = false;
             timer.Enabled = false;
+
+            OnStopped(new EventArgs());
         }
 
         public void JoinGiveaway()
@@ -137,6 +144,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             timer.Interval = Random.Next(min, max);
         }
+
+        void OnStarted(EventArgs e) => Started?.Invoke(this, e);
+        void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
 
         void timer_OnTimedEvent(object source, ElapsedEventArgs e)
         {
