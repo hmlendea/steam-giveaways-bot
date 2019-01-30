@@ -50,9 +50,8 @@ namespace SteamGiveawaysBot
 
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
             steamGiftsProcessor.LogIn();
-            
             steamGiftsProcessor.Start();
-            
+
             while (true)
             {
                 string cmd = Console.ReadLine().ToLower();
@@ -84,10 +83,6 @@ namespace SteamGiveawaysBot
 
         static IConfiguration LoadConfiguration()
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
- 
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
