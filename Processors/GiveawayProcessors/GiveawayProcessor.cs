@@ -21,7 +21,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public bool IsRunning { get; private set; }
 
-        public bool LoggedIn { get; protected set; }
+        public bool IsLoggedIn { get; protected set; }
+
+        public bool IsSuspended { get; protected set; }
 
         public int CurrentPoints { get; protected set; }
 
@@ -60,7 +62,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             GatherInfo();
 
-            if (!LoggedIn)
+            if (!IsLoggedIn)
             {
                 LogIn();
             }

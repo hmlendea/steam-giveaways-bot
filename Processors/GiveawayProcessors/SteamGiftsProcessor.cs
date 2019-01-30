@@ -35,20 +35,28 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             GoToUrl(HomePageUrl);
 
             By loginButtonSelector = By.ClassName("nav__sits");
+            By suspensionsButtonSelector = By.XPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
 
             if (ElementVisible(loginButtonSelector))
             {
-                LoggedIn = false;
+                IsLoggedIn = false;
                 return;
             }
 
-            LoggedIn = true;
+            IsLoggedIn = true;
 
             CurrentPoints = GetCurrentPoints();
             CurrentRewards = GetCurrentRewards();
 
             Log.Info($"Current points: {CurrentPoints}");
             Log.Info($"Current rewards: {CurrentRewards}");
+
+            if (ElementVisible(suspensionsButtonSelector))
+            {
+                IsSuspended = true;
+
+                throw new Exception("This account is suspended");
+            }
 
             if (CurrentPoints < MinimumPoints)
             {
