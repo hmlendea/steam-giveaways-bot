@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -123,7 +124,7 @@ namespace SteamGiveawaysBot.Entities
         public static IEnumerable<Country> Values => countries.Values;
 
         public static Country FromSteamCode(string code)
-            => countries.Values.FirstOrDefault(x => x.Code == code);
+            => countries.Values.FirstOrDefault(x => x.Code.Equals(code, StringComparison.InvariantCultureIgnoreCase));
 
         public static Country FromSteamGiftsCode(int code)
             => countries.Values.FirstOrDefault(x => x.SgCode == code);

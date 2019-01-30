@@ -49,14 +49,38 @@ namespace SteamGiveawaysBot.Processors
         {
             GoToUrl(AccountUrl);
 
-            account.EmailAddress = GetText(By.XPath(@"//*[@id='main_content']/div[2]/div[4]/div[1]/div[2]/div[1]/span[2]"));
+            By emailAddressSelector = By.XPath(@"//*[@id='main_content']/div[2]/div[4]/div[1]/div[2]/div[1]/span[2]");
+            By avatarSelector = By.XPath(@"//*[@id='global_actions']/a");
+            By displayNameSelector = By.ClassName("actual_persona_name");
+            By realNameSelector = By.XPath("//div[contains(@class,'header_real_name')]/bdi");
 
-            Click(By.XPath(@"//*[@id='global_actions']/a"));
-            Click(By.XPath(@"//div[@class='profile_header_actions']/a"));
+            account.EmailAddress = GetText(emailAddressSelector);
+
+            Click(avatarSelector);
             
-            account.DisplayName = GetText(By.Id("personaName"));
-            account.FirstName = GetText(By.Id("real_name"));
-            account.Country = Country.FromSteamCode(GetValue(By.Id("country")));
+            account.DisplayName = GetText(displayNameSelector);
+            account.FirstName = GetText(realNameSelector);
+            account.Country = GetCountry();
+
+            if (account.FirstName.Contains(' '))
+            {
+                string[] splitName = account.FirstName.Split(' ');
+                
+                account.FirstName = splitName[0];
+                account.LastName = splitName[1];
+            }
+        }
+
+        Country GetCountry()
+        {
+            By countryFlagSelector = By.ClassName("profile_flag");
+
+            string countryFlagUrl = GetSource(countryFlagSelector);
+            string[] countryFlagUrlFields = countryFlagUrl.Split('/');
+
+            string countryCode = countryFlagUrlFields[countryFlagUrlFields.Length - 1].Substring(0, 2);
+
+            return Country.FromSteamCode(countryCode);
         }
     }
 }
