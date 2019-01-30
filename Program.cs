@@ -45,14 +45,12 @@ namespace SteamGiveawaysBot
             Log.Info($"Logging in the Steam account ({account.Username})");
             steamProcessor.LogIn();
 
-            Log.Info($"Gathering profile information");
+            //Log.Info($"Gathering profile information");
             steamProcessor.GatherProfileInfo();
 
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-            Log.Info($"Logging in the SteamGifts account");
             steamGiftsProcessor.LogIn();
             
-            Log.Info($"Starting the SteamGifts bot");
             steamGiftsProcessor.Start();
             
             while (true)

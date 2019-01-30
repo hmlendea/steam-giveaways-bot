@@ -33,7 +33,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override void GatherInfo()
         {
-            Log.Info($"Gathering information");
+            //Log.Info($"Gathering information");
             GoToUrl(HomePageUrl);
 
             By loginButtonSelector = By.ClassName("nav__sits");
@@ -50,8 +50,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             CurrentPoints = GetCurrentPoints();
             CurrentRewards = GetCurrentRewards();
 
-            Log.Info($"Current points: {CurrentPoints}");
-            Log.Info($"Current rewards: {CurrentRewards}");
+            //Log.Info($"Current points: {CurrentPoints}");
+            //Log.Info($"Current rewards: {CurrentRewards}");
 
             if (ElementVisible(suspensionsButtonSelector))
             {
@@ -62,6 +62,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (CurrentPoints < MinimumPoints)
             {
+                Log.Info($"Waiting {TimerInterval.TotalMinutes} minutes to recharge points");
                 TimerInterval = RechargeInterval;
 
                 return;
@@ -90,7 +91,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected override Giveaway FindGiveaway()
         {
-            Log.Info($"Finding a giveaway to join");
+            //Log.Info($"Finding a giveaway to join");
             GoToUrl(HomePageUrl);
 
             By giveawaySelector = By.XPath(@"//div[@class='widget-container']/div[2]/div[3]/div/div/div/h2/a");
@@ -110,7 +111,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected override void ProcessGiveaway(Giveaway giveaway)
         {
-            Log.Info($"Processing giveaway '{giveaway.GiveawayCode}'");
+            //Log.Info($"Processing giveaway '{giveaway.GiveawayCode}'");
             GoToUrl(giveaway.Url);
 
             By gameTitleSelector = By.ClassName("featured__heading__medium");
@@ -128,7 +129,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             DateTime endTime = DateTimeUtils.FromUnixTime(endTimeUnixTimestamp);
 
-            Log.Info($"Giveaway info retrieved for '{giveaway.GiveawayCode}': \"{gameTitle}\" ({price}P), ends at {endTime}");
+            //Log.Info($"Giveaway info retrieved for '{giveaway.GiveawayCode}': \"{gameTitle}\" ({price}P), ends at {endTime}");
 
             if (endTime > DateTime.Now)
             {

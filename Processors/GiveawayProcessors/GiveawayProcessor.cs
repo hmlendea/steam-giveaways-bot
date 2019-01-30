@@ -49,6 +49,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         Timer timer;
 
+        DateTime LastRewardsChekingDate { get; set; }
+
+        TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
+
         public GiveawayProcessor(IWebDriver driver, AccountDetails account)
             : base(driver)
         {
@@ -59,7 +63,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public void Start()
         {
-            Log.Info($"Starting {GetType().Name} bot for {account.Username}");
+            //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
             IsRunning = true;
 
             GatherInfo();
@@ -71,7 +75,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (CurrentRewards > 0)
             {
-                ProcessRewards();
+                if (LastRewardsChekingDate == null ||
+                    LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
+                {
+                    ProcessRewards();
+                }
             }
 
             timer.Enabled = true;
