@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,8 @@ namespace SteamGiveawaysBot
     {
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
+        static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
+
         static AccountDetails account;
 
         static void Main(string[] args)
@@ -37,12 +40,32 @@ namespace SteamGiveawaysBot
             MailNotifier.SenderAddress = config["mailSenderAddress"];
             MailNotifier.SenderPassword = config["mailSenderPassword"];
 
-            SetUpAccount();
+            while (true)
+            {
+                if (!IsInternetConnected())
+                {
+                    Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                    Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
+                }
 
-            Console.ReadLine();
+                if (IsInternetConnected())
+                {
+                    try
+                    {
+                        RunBot();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"{ex.Message}\n{ex.StackTrace}");
+
+                        Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
+                        Thread.Sleep((int)RetryDelay.TotalMilliseconds);
+                    }
+                }
+            }
         }
 
-        static void SetUpAccount()
+        static void RunBot()
         {
             Log.Info($"Setting up the driver");
             IWebDriver driver = SetupDriver();
@@ -55,7 +78,6 @@ namespace SteamGiveawaysBot
             steamProcessor.GatherProfileInfo();
 
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-            steamGiftsProcessor.Stopped += steamGiftsProcessor_OnStopped;
             steamGiftsProcessor.Start();
         }
 
@@ -76,18 +98,27 @@ namespace SteamGiveawaysBot
             return driver;
         }
 
+        static bool IsInternetConnected()
+        {
+            try
+            {
+                using (var client = new WebClient())
+                using (client.OpenRead("http://clients3.google.com/generate_204"))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         static IConfiguration LoadConfiguration()
         {
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
-        }
-
-        static void steamGiftsProcessor_OnStopped(object sender, EventArgs e)
-        {
-            Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
-            Thread.Sleep((int)RetryDelay.TotalMilliseconds);
-            SetUpAccount();
         }
     }
 }

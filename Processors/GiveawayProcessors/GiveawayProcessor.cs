@@ -154,9 +154,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             {
                 JoinGiveaway();
             }
-            catch (Exception ex)
+            catch
             {
-                Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 Stop();
             }
         }
