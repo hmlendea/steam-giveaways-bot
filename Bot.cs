@@ -43,10 +43,12 @@ namespace SteamGiveawaysBot
             {
                 try
                 {
+
                     DoStuff();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Log.Error($"{ex.Message}\n{ex.StackTrace}");
                     OnStopped(new EventArgs());
                 }
             }
@@ -58,14 +60,23 @@ namespace SteamGiveawaysBot
             IWebDriver driver = SetupDriver();
 
             SteamProcessor steamProcessor = new SteamProcessor(driver, account);
-            Log.Info($"Logging in the Steam account ({account.Username})");
-            steamProcessor.LogIn();
-
-            //Log.Info($"Gathering profile information");
-            steamProcessor.GatherProfileInfo();
-
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-            steamGiftsProcessor.Run();
+
+            try
+            {
+                Log.Info($"Logging in {account.Username} on Steam");
+                steamProcessor.LogIn();
+                steamProcessor.GatherProfileInfo();
+
+                steamGiftsProcessor.Run();
+            }
+            catch
+            {
+                steamProcessor.Close();
+                steamGiftsProcessor.Close();
+                driver.Close();
+                throw;
+            }
         }
 
         IWebDriver SetupDriver()

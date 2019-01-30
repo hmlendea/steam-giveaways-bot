@@ -22,6 +22,8 @@ namespace SteamGiveawaysBot
     {
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
+        static Bot bot;
+
         static void Main(string[] args)
         {
             IConfiguration config = LoadConfiguration();
@@ -36,19 +38,11 @@ namespace SteamGiveawaysBot
             MailNotifier.SenderAddress = config["mailSenderAddress"];
             MailNotifier.SenderPassword = config["mailSenderPassword"];
 
-            Bot bot = new Bot(account);
-            
-            try
-            {
-                bot.Run();
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"{ex.Message}\n{ex.StackTrace}");
+            bot = new Bot(account);
+            bot.Stopped += bot_OnStopped;
+            bot.Run();
 
-                Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
-                Thread.Sleep((int)RetryDelay.TotalMilliseconds);
-            }
+            Console.ReadLine();
         }
 
         static IConfiguration LoadConfiguration()
@@ -56,6 +50,14 @@ namespace SteamGiveawaysBot
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
+        }
+
+        static void bot_OnStopped(object sender, EventArgs e)
+        {
+            Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
+            Thread.Sleep((int)RetryDelay.TotalMilliseconds);
+
+            bot.Run();
         }
     }
 }
