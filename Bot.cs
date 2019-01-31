@@ -82,9 +82,14 @@ namespace SteamGiveawaysBot
         {
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
-            options.AddArgument("headless");
             options.AddArgument("--silent");
+			options.AddArgument("--disable-translate");
+			options.AddArgument("--disable-infobars");
+            options.AddArgument("--disable-extensions");
+            options.AddArgument("--start-maximized");
+            options.AddArgument("--headless");
             options.AddArgument("--disable-gpu");
+			options.AddArgument("--window-size=1920,1080");
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.SuppressInitialDiagnosticInformation = true;

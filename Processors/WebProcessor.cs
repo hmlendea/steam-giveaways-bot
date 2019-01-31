@@ -25,7 +25,7 @@ namespace SteamGiveawaysBot.Processors
 
         protected const int DefaultWait = 333;
 
-        static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(20);
+        static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
 
         public WebProcessor(IWebDriver driver)
         {
