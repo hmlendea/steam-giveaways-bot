@@ -42,11 +42,18 @@ namespace SteamGiveawaysBot
             MailNotifier.SenderAddress = config["mailSenderAddress"];
             MailNotifier.SenderPassword = config["mailSenderPassword"];
 
-            bot = new Bot(account);
-            bot.Stopped += bot_OnStopped;
-            bot.Run();
+            try
+            {
+                bot = new Bot(account);
+                bot.Stopped += bot_OnStopped;
+                bot.Run();
 
-            Console.ReadLine();
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Fatality: {ex.Message}");
+            }
         }
 
         static IConfiguration LoadConfiguration()
