@@ -63,14 +63,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (CurrentPoints < MinimumPoints)
             {
-                Log.Info($"Waiting {TimerInterval.TotalMinutes} minutes to recharge points");
-                TimerInterval = RechargeInterval;
+                Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points");
+                
+                NextCheckTime = DateTime.Now + RechargeWaitDuration;
 
                 return;
             }
             else
             {
-                TimerInterval = DefaultInterval;
+                NextCheckTime = DateTime.Now + DefaultWaitDuration;
             }
         }
 
@@ -95,11 +96,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             //Log.Info($"Finding a giveaway to join");
             GoToUrl(HomePageUrl);
 
-            By giveawaySelector = By.XPath(@"//div[@class='widget-container']/div[2]/div[3]/div/div/div/h2/a");
-
-            foreach (IWebElement element in GetElements(giveawaySelector))
+            for (int i = 1; i <= 50; i++)
             {
-                Giveaway giveaway = new Giveaway(element.GetAttribute("href"));
+                By giveawayTitleSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
+                By giveawayEndTimeSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/div[1]/div[1]/span");
+
+                string giveawayLink = GetHyperlink(giveawayTitleSelector);
+                string giveawayEndTimeTimestamp = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
+
+                Giveaway giveaway = new Giveaway(giveawayLink);
+                giveaway.EndTime = DateTimeUtils.FromUnixTime(giveawayEndTimeTimestamp);
 
                 if (lastProcessedGiveaway != giveaway)
                 {
@@ -117,25 +123,18 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             By gameTitleSelector = By.ClassName("featured__heading__medium");
             By priceSelector = By.ClassName("featured__heading__small");
-            By remainingTimeSelector = By.XPath(@"//div[@class='featured__summary']/div[2]/div[1]/span");
             By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
             By enterButtonSelector = By.ClassName("sidebar__entry-insert");
 
             string gameTitle = GetText(gameTitleSelector);
             string priceString = GetElements(priceSelector).Last().Text;
-            string endTimeUnixTimestamp = GetAttribute(remainingTimeSelector, "data-timestamp");
             string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
 
             int price = int.Parse(priceSubstring);
 
-            DateTime endTime = DateTimeUtils.FromUnixTime(endTimeUnixTimestamp);
-
             //Log.Info($"Giveaway info retrieved for '{giveaway.GiveawayCode}': \"{gameTitle}\" ({price}P), ends at {endTime}");
 
-            if (endTime > DateTime.Now)
-            {
-                TimerInterval = endTime - DateTime.Now;
-            }
+            NextCheckTime = giveaway.EndTime;
 
             if (ElementVisible(errorSelector))
             {
@@ -146,11 +145,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     errorText = "Already entered";
                 }
 
-                Log.Warn($"Cannot enter '{giveaway.GiveawayCode}': \"{errorText}\"");
+                Log.Warn($"Cannot enter '{giveaway.GiveawayCode}': \"{errorText}\". Ends at {giveaway.EndTime}");
             }
             else
             {
-                Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'");
+                Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'. Ends at {giveaway.EndTime}");
                 Click(enterButtonSelector);
             }
 
@@ -209,7 +208,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         void Register()
         {
-            Log.Info($"Registering user '{account.Username}'");
+            Log.Info($"Registering user '{account.Username}' on SteamGifts");
 
             SetText(By.Name("username"), account.Username);
             SetText(By.Name("email"), account.EmailAddress);

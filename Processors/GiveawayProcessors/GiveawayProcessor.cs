@@ -40,19 +40,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public event EventHandler Stopped;
 
-        public TimeSpan TimerInterval
-        {
-            get { return TimeSpan.FromMilliseconds(timer.Interval); }
-            set { UpdateTimerInterval(value); }
-        }
+        public DateTime NextCheckTime;
 
-        public TimeSpan RechargeInterval => TimeSpan.FromMinutes(30);
+        public TimeSpan RechargeWaitDuration => TimeSpan.FromMinutes(30);
 
-        protected TimeSpan DefaultInterval => TimeSpan.FromSeconds(30);
+        public TimeSpan DefaultWaitDuration => TimeSpan.FromMinutes(5);
 
         protected AccountDetails account;
-
-        Timer timer;
 
         DateTime LastRewardsChekingDate { get; set; }
 
@@ -62,8 +56,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             : base(driver)
         {
             this.account = account;
-
-            SetUp();
         }
 
         public void Start()
@@ -81,9 +73,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     LogIn();
                 }
 
-                timer.Enabled = true;
-                timer.Start();
-                Task.Run(() => { timer_OnTimedEvent(null, null); });
+                Run();
             }
             catch (Exception ex)
             {
@@ -98,16 +88,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             Log.Info($"Stopping {GetType().Name} bot for {account.Username}");
 
             IsRunning = false;
-            timer.Enabled = false;
-            timer.Stop();
 
             OnStopped(new EventArgs());
-        }
-
-        public void JoinGiveaway()
-        {
-            Giveaway giveaway = FindGiveaway();
-            ProcessGiveaway(giveaway);
         }
 
         public abstract void GatherInfo();
@@ -120,35 +102,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected abstract void ProcessRewards();
 
-        void SetUp()
+        void Run()
         {
-            LastRewardsChekingDate = DateTime.Now.AddYears(-10);
-
-            timer = new Timer(DefaultInterval.TotalMilliseconds);
-            timer.Elapsed += timer_OnTimedEvent;
-            timer.AutoReset = true;
-            timer.Enabled = false;
-        }
-
-        void UpdateTimerInterval(TimeSpan interval)
-        {
-            int min = (int)(Math.Max(
-                interval.TotalMilliseconds - 10000,
-                interval.TotalMilliseconds - (int)(interval.TotalMilliseconds * 0.2)));
-
-            int max = (int)(Math.Min(
-                interval.TotalMilliseconds + 10000,
-                interval.TotalMilliseconds + (int)(interval.TotalMilliseconds * 0.2)));
-
-            timer.Interval = Random.Next(min, max);
-        }
-
-        void OnStarted(EventArgs e) => Started?.Invoke(this, e);
-        void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
-
-        void timer_OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            try
+            while (IsRunning)
             {
                 GatherInfo();
 
@@ -160,7 +116,24 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                JoinGiveaway();
+                Giveaway giveaway = FindGiveaway();
+                ProcessGiveaway(giveaway);
+
+                if (NextCheckTime > DateTime.Now)
+                {
+                    TimeSpan waitTime = NextCheckTime - DateTime.Now;
+                    Wait(waitTime);
+                }
+            }
+        }
+
+        void OnStarted(EventArgs e) => Started?.Invoke(this, e);
+        void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
+
+        void timer_OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+            try
+            {
             }
             catch (Exception ex)
             {

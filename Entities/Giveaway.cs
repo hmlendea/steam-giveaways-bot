@@ -24,6 +24,8 @@ namespace SteamGiveawaysBot.Entities
             }
         }
 
+        public DateTime EndTime { get; set; }
+
         public Giveaway(string url)
         {
             Url = url;
