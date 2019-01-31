@@ -264,10 +264,13 @@ namespace SteamGiveawaysBot.Processors
         }
 
         protected void Wait() => Wait(DefaultWait);
-        protected void Wait(TimeSpan timeSpan) => Wait((int)timeSpan.TotalMilliseconds);
-        protected void Wait(int milliseconds)
+        protected void Wait(int milliseconds) => Wait(TimeSpan.FromMilliseconds(milliseconds));
+        protected void Wait(TimeSpan timeSpan)
         {
-            Thread.Sleep(milliseconds);
+            DateTime now = DateTime.Now;
+            WebDriverWait wait = new WebDriverWait(driver, timeSpan);
+            wait.PollingInterval = TimeSpan.FromMilliseconds(10);
+            wait.Until(wd=> (DateTime.Now - now) - timeSpan > TimeSpan.Zero);
         }
 
         protected void WaitUntilTextLength(By selector, int length) => WaitUntilTextLength(selector, length, DefaultTimeout);

@@ -23,10 +23,6 @@ namespace SteamGiveawaysBot
         AccountDetails account;
         TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
-        IWebDriver driver;
-        SteamProcessor steamProcessor;
-        SteamGiftsProcessor steamGiftsProcessor;
-
         public Bot(AccountDetails account)
         {
             this.account = account;
@@ -47,7 +43,6 @@ namespace SteamGiveawaysBot
             {
                 try
                 {
-                    SetUp();
                     DoStuff();
                 }
                 catch (Exception ex)
@@ -60,25 +55,27 @@ namespace SteamGiveawaysBot
 
         void DoStuff()
         {
+            IWebDriver driver = SetupDriver();
+
             try
             {
+                SteamProcessor steamProcessor = new SteamProcessor(driver, account);
                 Log.Info($"Logging in {account.Username} on Steam");
                 steamProcessor.LogIn();
                 steamProcessor.GatherProfileInfo();
+                steamProcessor.Close();
 
+                SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
                 steamGiftsProcessor.Start();
             }
             catch
             {
-                steamProcessor.Close();
-                steamGiftsProcessor.Close();
-                driver.Close();
-
+                driver.Quit();
                 throw;
             }
         }
 
-        IWebDriver SetUp()
+        IWebDriver SetupDriver()
         {
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
@@ -95,11 +92,8 @@ namespace SteamGiveawaysBot
             service.SuppressInitialDiagnosticInformation = true;
             service.HideCommandPromptWindow = true;
 
-            driver = new ChromeDriver(service, options);
+            IWebDriver driver = new ChromeDriver(service, options);
             driver.Manage().Window.Maximize();
-
-            steamProcessor = new SteamProcessor(driver, account);
-            steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
 
             return driver;
         }
