@@ -21,11 +21,13 @@ namespace SteamGiveawaysBot.Processors
 
         protected Random Random { get; set; }
 
+        protected static readonly TimeSpan DefaultWait = TimeSpan.FromMilliseconds(333);
+
+        static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(20);
+
+        const int DefaultHttpAttemptsAmount = 3;
+
         readonly IWebDriver driver;
-
-        protected const int DefaultWait = 333;
-
-        static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
 
         public WebProcessor(IWebDriver driver)
         {
@@ -102,16 +104,34 @@ namespace SteamGiveawaysBot.Processors
             WindowHandles.Remove(handle);
         }
 
-        protected void GoToUrl(string url)
+        protected void GoToUrl(string url) => GoToUrl(url, DefaultHttpAttemptsAmount);
+        protected void GoToUrl(string url, int httpRetries) => GoToUrl(url, httpRetries, DefaultWait);
+        protected void GoToUrl(string url, TimeSpan retryDelay) => GoToUrl(url, DefaultHttpAttemptsAmount, retryDelay);
+        protected void GoToUrl(string url, int httpRetries, TimeSpan retryDelay)
         {
-            FocusHandle(CurrentProcessorHandle);
-
-            if (driver.Url == url)
+            for (int attempt = 0; attempt < httpRetries; attempt++)
             {
-                return;
+                FocusHandle(CurrentProcessorHandle);
+
+                if (driver.Url == url)
+                {
+                    return;
+                }
+
+                driver.Navigate().GoToUrl(url);
+
+                By errorSelectorChrome = By.ClassName("error-code");
+
+                if (!AnyElementVisible(errorSelectorChrome))
+                {
+                    return;
+                }
+
+                GoToUrl("about:blank");
+                Wait(retryDelay);
             }
 
-            driver.Navigate().GoToUrl(url);
+            throw new Exception($"Failed to load the requested URL after {httpRetries} attempts");
         }
 
         protected void GoToIframe(By selector)
