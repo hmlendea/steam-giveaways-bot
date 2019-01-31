@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 
 using OpenQA.Selenium;
@@ -47,7 +48,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public TimeSpan RechargeInterval => TimeSpan.FromMinutes(30);
 
-        protected TimeSpan DefaultInterval => TimeSpan.FromSeconds(5);
+        protected TimeSpan DefaultInterval => TimeSpan.FromSeconds(30);
 
         protected AccountDetails account;
 
@@ -82,6 +83,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 timer.Enabled = true;
                 timer.Start();
+                Task.Run(() => { timer_OnTimedEvent(null, null); });
             }
             catch (Exception ex)
             {

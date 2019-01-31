@@ -22,7 +22,6 @@ namespace SteamGiveawaysBot.Utils
             smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtp.Credentials = new NetworkCredential(SenderAddress, SenderPassword);
 
-            Console.WriteLine($"{RecipientAddress} {SenderAddress} {SenderPassword}");
             using (MailMessage mail = new MailMessage())
             {
                 mail.From = new MailAddress(SenderAddress, $"SteamGiveawaysBot");

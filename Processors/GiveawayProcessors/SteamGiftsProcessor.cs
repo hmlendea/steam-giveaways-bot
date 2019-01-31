@@ -168,25 +168,39 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             for (int i = 0; i < rewardItems.Count; i++)
             {
-                By unreceivedRadioSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[4]/div[1]/i[contains(@class,'fa-circle-o')]");
-                By keySelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{1}]/div[3]");
-                By gameTitleSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[2]/p/a");
-                By receivedRadioSelector = By.XPath($"//div[@class='table__row-outer-wrap']/div[{i}]/div[4]/div[1]/i");
+                string rewardItemXpath = $"//div[@class='table__row-outer-wrap']/div[{i + 1}]";
+                
+                By receivedStatusSelector = By.XPath($"{rewardItemXpath}/div[4]/div[contains(@class,'is-hidden')]");
+                By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[3]");
+                By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
+                By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
+                By keySelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
+                By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
 
-                if (!ElementVisible(unreceivedRadioSelector))
+                if (ElementVisible(receivedStatusSelector))
                 {
                     continue;
                 }
 
-                string gameKey = GetText(keySelector).Trim();
-
-                if (gameKey.Length < 6)
+                if (ElementVisible(viewKeyButtonSelector))
                 {
-                    continue;
+                    Click(viewKeyButtonSelector);
+                    WaitUntilElementExists(keySelector, false);
+                }
+
+                if (!ElementVisible(keySelector))
+                {
+                    string keyStatus = GetText(keyStatusSelector).Trim();
+
+                    if (keyStatus.Length < 6)
+                    {
+                        continue;
+                    }
                 }
 
                 string gameTitle = GetText(gameTitleSelector);
                 string giveawayLink = GetHyperlink(gameTitleSelector);
+                string gameKey = GetAttribute(keySelector, "data-clipboard-text");
 
                 MailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
                 Click(receivedRadioSelector);
