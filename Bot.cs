@@ -41,22 +41,22 @@ namespace SteamGiveawaysBot
         {
             while (IsRunning)
             {
-                if (!IsInternetConnected())
+                try
                 {
-                    Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
-                    Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
-                }
+                    if (!IsInternetConnected())
+                    {
+                        Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                        Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
+                    }
 
-                if (IsInternetConnected())
-                {
-                    try
+                    if (IsInternetConnected())
                     {
                         DoStuff();
                     }
-                    catch (Exception ex)
-                    {
-                        Log.Error($"{ex.Message}\n{ex.StackTrace}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
