@@ -23,6 +23,10 @@ namespace SteamGiveawaysBot
         AccountDetails account;
         TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
+        IWebDriver driver;
+        SteamProcessor steamProcessor;
+        SteamGiftsProcessor steamGiftsProcessor;
+
         public Bot(AccountDetails account)
         {
             this.account = account;
@@ -43,7 +47,7 @@ namespace SteamGiveawaysBot
             {
                 try
                 {
-
+                    SetUp();
                     DoStuff();
                 }
                 catch (Exception ex)
@@ -56,42 +60,41 @@ namespace SteamGiveawaysBot
 
         void DoStuff()
         {
-            Log.Info($"Setting up the driver");
-            IWebDriver driver = SetupDriver();
-
-            SteamProcessor steamProcessor = new SteamProcessor(driver, account);
-            SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-
             try
             {
                 Log.Info($"Logging in {account.Username} on Steam");
                 steamProcessor.LogIn();
                 steamProcessor.GatherProfileInfo();
 
-                steamGiftsProcessor.Run();
+                steamGiftsProcessor.Start();
             }
             catch
             {
                 steamProcessor.Close();
                 steamGiftsProcessor.Close();
                 driver.Close();
+
                 throw;
             }
         }
 
-        IWebDriver SetupDriver()
+        IWebDriver SetUp()
         {
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
-            //options.AddArgument("headless");
+            options.AddArgument("headless");
             options.AddArgument("--silent");
+            options.AddArgument("--disable-gpu");
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.SuppressInitialDiagnosticInformation = true;
             service.HideCommandPromptWindow = true;
 
-            IWebDriver driver = new ChromeDriver(service, options);
+            driver = new ChromeDriver(service, options);
             driver.Manage().Window.Maximize();
+
+            steamProcessor = new SteamProcessor(driver, account);
+            steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
 
             return driver;
         }

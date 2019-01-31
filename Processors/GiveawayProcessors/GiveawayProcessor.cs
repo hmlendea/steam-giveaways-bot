@@ -62,10 +62,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             this.account = account;
 
-            SetTimer();
+            SetUp();
         }
 
-        public void Run()
+        public void Start()
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
             IsRunning = true;
@@ -81,6 +81,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
 
                 timer.Enabled = true;
+                timer.Start();
             }
             catch (Exception ex)
             {
@@ -96,6 +97,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             IsRunning = false;
             timer.Enabled = false;
+            timer.Stop();
 
             OnStopped(new EventArgs());
         }
@@ -116,9 +118,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected abstract void ProcessRewards();
 
-        void SetTimer()
+        void SetUp()
         {
-            timer = new Timer(10000);
+            LastRewardsChekingDate = DateTime.Now.AddYears(-10);
+
+            timer = new Timer(DefaultInterval.TotalMilliseconds);
             timer.Elapsed += timer_OnTimedEvent;
             timer.AutoReset = true;
             timer.Enabled = false;
@@ -148,8 +152,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (CurrentRewards > 0)
                 {
-                    if (LastRewardsChekingDate == null ||
-                        LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
+                    if (LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
                     {
                         ProcessRewards();
                     }
@@ -157,8 +160,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 JoinGiveaway();
             }
-            catch
+            catch (Exception ex)
             {
+                Log.Error($"{ex.Message}");
                 Stop();
                 throw;
             }

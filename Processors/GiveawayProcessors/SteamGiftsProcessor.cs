@@ -82,7 +82,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
             Click(By.Id("imageLogin"));
 
-            WaitUntilElementExists(By.ClassName("nav__left-container"));
+            WaitUntilElementExists(By.ClassName("nav__left-container"), false);
 
             if (ElementVisible(By.Name("username")))
             {
