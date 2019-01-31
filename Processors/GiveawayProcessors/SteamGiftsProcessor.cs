@@ -60,19 +60,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 throw new Exception("This account is suspended");
             }
-
-            if (CurrentPoints < MinimumPoints)
-            {
-                Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points");
-                
-                NextCheckTime = DateTime.Now + RechargeWaitDuration;
-
-                return;
-            }
-            else
-            {
-                NextCheckTime = DateTime.Now + DefaultWaitDuration;
-            }
         }
 
         public override void LogIn()

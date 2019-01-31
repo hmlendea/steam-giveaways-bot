@@ -26,6 +26,8 @@ namespace SteamGiveawaysBot
 
         static void Main(string[] args)
         {
+            Log.Info($"Application started");
+
             IConfiguration config = LoadConfiguration();
 
             AccountDetails account = new AccountDetails

@@ -61,7 +61,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         public void Run()
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
-            
+
             IsRunning = true;
             OnStarted(new EventArgs());
 
@@ -109,8 +109,17 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                Giveaway giveaway = FindGiveaway();
-                ProcessGiveaway(giveaway);
+                if (CurrentPoints > MinimumPoints)
+                {
+                    Giveaway giveaway = FindGiveaway();
+                    ProcessGiveaway(giveaway);
+                }
+                else
+                {
+                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points");
+                    
+                    NextCheckTime = DateTime.Now + RechargeWaitDuration;
+                }
 
                 if (NextCheckTime > DateTime.Now)
                 {
