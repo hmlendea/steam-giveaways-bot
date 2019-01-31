@@ -58,29 +58,22 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             this.account = account;
         }
 
-        public void Start()
+        public void Run()
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
+            
             IsRunning = true;
             OnStarted(new EventArgs());
 
-            try
-            {
-                GatherInfo();
+            GatherInfo();
 
-                if (!IsLoggedIn)
-                {
-                    LogIn();
-                }
-
-                Run();
-            }
-            catch (Exception ex)
+            if (!IsLoggedIn)
             {
-                Log.Error($"{ex.Message}\n{ex.StackTrace}");
-                Stop();
-                throw;
+                LogIn();
             }
+
+            RunLoop();
+            OnStopped(new EventArgs());
         }
 
         public void Stop()
@@ -102,7 +95,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected abstract void ProcessRewards();
 
-        void Run()
+        void RunLoop()
         {
             while (IsRunning)
             {
@@ -122,6 +115,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 if (NextCheckTime > DateTime.Now)
                 {
                     TimeSpan waitTime = NextCheckTime - DateTime.Now;
+
                     Wait(waitTime);
                 }
             }
@@ -129,18 +123,5 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         void OnStarted(EventArgs e) => Started?.Invoke(this, e);
         void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
-
-        void timer_OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            try
-            {
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"{ex.Message}");
-                Stop();
-                throw;
-            }
-        }
     }
 }

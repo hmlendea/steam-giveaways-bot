@@ -33,22 +33,30 @@ namespace SteamGiveawaysBot
             IsRunning = true;
             OnStarted(new EventArgs());
 
-            if (!IsInternetConnected())
-            {
-                Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
-                Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
-            }
+            RunLoop();
+            OnStopped(new EventArgs());
+        }
 
-            if (IsInternetConnected())
+        void RunLoop()
+        {
+            while (IsRunning)
             {
-                try
+                if (!IsInternetConnected())
                 {
-                    DoStuff();
+                    Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                    Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
                 }
-                catch (Exception ex)
+
+                if (IsInternetConnected())
                 {
-                    Log.Error($"{ex.Message}\n{ex.StackTrace}");
-                    OnStopped(new EventArgs());
+                    try
+                    {
+                        DoStuff();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"{ex.Message}\n{ex.StackTrace}");
+                    }
                 }
             }
         }
@@ -66,7 +74,8 @@ namespace SteamGiveawaysBot
                 steamProcessor.Close();
 
                 SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
-                steamGiftsProcessor.Start();
+                steamGiftsProcessor.Run();
+                steamGiftsProcessor.Stop();
             }
             catch
             {
