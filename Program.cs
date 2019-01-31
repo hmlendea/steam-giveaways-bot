@@ -34,6 +34,8 @@ namespace SteamGiveawaysBot
                 Password = config["steamPassword"]
             };
 
+            Log.LogFilePath = config["logFilePath"];
+
             MailNotifier.RecipientAddress = config["mailRecipientAddress"];
             MailNotifier.SenderAddress = config["mailSenderAddress"];
             MailNotifier.SenderPassword = config["mailSenderPassword"];
