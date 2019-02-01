@@ -42,7 +42,7 @@ namespace SteamGiveawaysBot.Processors
             
             Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
             
-            WaitUntilElementExists(avatarSelector, false);
+            WaitForElementToExist(avatarSelector);
         }
 
         public void GatherProfileInfo()

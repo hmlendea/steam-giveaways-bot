@@ -138,9 +138,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (NextCheckTime > DateTime.Now)
                 {
-                    TimeSpan waitTime = NextCheckTime - DateTime.Now;
-
-                    Wait(waitTime);
+                    Wait(NextCheckTime);
                 }
             }
         }

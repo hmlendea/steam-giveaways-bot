@@ -40,7 +40,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             By pointsSelector = By.ClassName("nav__points");
             By suspensionsButtonSelector = By.XPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
 
-            if (ElementVisible(loginButtonSelector) || !ElementVisible(pointsSelector))
+            if (DoesElementExist(loginButtonSelector) || !DoesElementExist(pointsSelector))
             {
                 IsLoggedIn = false;
                 return;
@@ -51,10 +51,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             CurrentPoints = GetCurrentPoints();
             CurrentRewards = GetCurrentRewards();
 
-            //Log.Info($"Current points: {CurrentPoints}");
-            //Log.Info($"Current rewards: {CurrentRewards}");
-
-            if (ElementVisible(suspensionsButtonSelector))
+            if (DoesElementExist(suspensionsButtonSelector))
             {
                 IsSuspended = true;
             }
@@ -68,9 +65,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
             Click(By.Id("imageLogin"));
 
-            WaitUntilElementExists(By.ClassName("nav__left-container"), false);
+            WaitForElementToExist(By.ClassName("nav__left-container"), false);
 
-            IsRegistered = !ElementVisible(By.Name("username"));
+            IsRegistered = !DoesElementExist(By.Name("username"));
             IsLoggedIn = IsRegistered;
         }
 
@@ -137,7 +134,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             NextCheckTime = giveaway.EndTime;
 
-            if (ElementVisible(errorSelector))
+            if (DoesElementExist(errorSelector))
             {
                 string errorText = GetText(errorSelector).Trim();;
 
@@ -177,18 +174,18 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 By keySelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
                 By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
 
-                if (ElementVisible(receivedStatusSelector))
+                if (DoesElementExist(receivedStatusSelector))
                 {
                     continue;
                 }
 
-                if (ElementVisible(viewKeyButtonSelector))
+                if (DoesElementExist(viewKeyButtonSelector))
                 {
                     Click(viewKeyButtonSelector);
-                    WaitUntilElementExists(keySelector, false);
+                    WaitForElementToExist(keySelector);
                 }
 
-                if (!ElementVisible(keySelector))
+                if (!IsElementVisible(keySelector))
                 {
                     string keyStatus = GetText(keyStatusSelector).Trim();
 

@@ -13,15 +13,15 @@ namespace SteamGiveawaysBot.Processors
     {
         public string Name => GetType().Name.Replace("Processor", string.Empty);
 
-        public List<string> WindowHandles { get; private set; }
+        public List<string> Tabs { get; private set; }
 
-        public List<string> DriverWindowHandles => driver.WindowHandles.ToList();
+        public List<string> DriverWindowTabs => driver.WindowHandles.ToList();
 
-        public string CurrentProcessorHandle { get; private set; }
+        public string CurrentTab { get; private set; }
 
         protected Random Random { get; set; }
 
-        protected static readonly TimeSpan DefaultWait = TimeSpan.FromMilliseconds(333);
+        static readonly TimeSpan DefaultWaitDuration = TimeSpan.FromMilliseconds(333);
 
         static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(20);
 
@@ -35,41 +35,42 @@ namespace SteamGiveawaysBot.Processors
 
             Random = new Random();
 
-            WindowHandles = new List<string>();
-            NewHandle();
+            Tabs = new List<string>();
         }
 
         public void Close()
         {
-            foreach(string handle in WindowHandles.ToList())
+            foreach(string tab in Tabs.ToList())
             {
-                CloseHandle(handle);
+                CloseTab(tab);
             }
 
             driver.SwitchTo().Window(driver.WindowHandles[0]);
         }
 
-        protected void FocusHandle(int index) => FocusHandle(WindowHandles[index]);
-        protected void FocusHandle(string handle)
+        protected void SwitchToTab(int index) => SwitchToTab(Tabs[index]);
+        protected void SwitchToTab(string tab)
         {
-            if (handle == driver.CurrentWindowHandle)
+            if (tab == driver.CurrentWindowHandle)
             {
                 return;
             }
 
-            if (!WindowHandles.Contains(handle))
+            if (!Tabs.Contains(tab))
             {
-                throw new ArgumentOutOfRangeException("The specified handle does not belong to this processor");
+                throw new ArgumentOutOfRangeException("The specified tab does not belong to this processor");
             }
             
-            CurrentProcessorHandle = handle;
-            driver.SwitchTo().Window(handle);
+            CurrentTab = tab;
+            driver.SwitchTo().Window(tab);
         }
 
-        protected string NewHandle() => NewHandle("about:blank");
-        protected string NewHandle(string url)
+        protected string NewTab() => NewTab("about:blank");
+        protected string NewTab(string url)
         {
             driver.SwitchTo().Window(driver.WindowHandles[0]);
+
+            // TODO: This is not covered by the retry mechanism
             string newTabScript =
                 "var d=document,a=d.createElement('a');" +
                 "a.target='_blank';a.href='" + url + "';" +
@@ -78,51 +79,59 @@ namespace SteamGiveawaysBot.Processors
                 "a.click();" +
                 "a.parentNode.removeChild(a);";
 
-            List<string> oldWindowHandles = driver.WindowHandles.ToList();
+            List<string> oldWindowTabs = driver.WindowHandles.ToList();
 
             IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
             scriptExecutor.ExecuteScript(newTabScript);
 
-            List<string> newWindowHandles = driver.WindowHandles.ToList();
-            string openedWindowHandle = newWindowHandles.Except(oldWindowHandles).Single();
+            List<string> newWindowTabs = driver.WindowHandles.ToList();
+            string openedWindowTabs = newWindowTabs.Except(oldWindowTabs).Single();
 
-            WindowHandles.Add(openedWindowHandle);
+            Tabs.Add(openedWindowTabs);
 
-            FocusHandle(openedWindowHandle);
+            SwitchToTab(openedWindowTabs);
 
-            return openedWindowHandle;
+            return openedWindowTabs;
         }
 
-        protected void CloseHandle(string handle)
+        protected void CloseTab(string tab)
         {
-            if (!WindowHandles.Contains(handle))
+            if (!Tabs.Contains(tab))
             {
-                throw new ArgumentOutOfRangeException("The specified handle does not belong to this processor");
+                throw new ArgumentOutOfRangeException("The specified tab does not belong to this processor");
             }
             
-            driver.SwitchTo().Window(handle).Close();
-            WindowHandles.Remove(handle);
+            driver.SwitchTo().Window(tab).Close();
+            Tabs.Remove(tab);
         }
 
         protected void GoToUrl(string url) => GoToUrl(url, DefaultHttpAttemptsAmount);
-        protected void GoToUrl(string url, int httpRetries) => GoToUrl(url, httpRetries, DefaultWait);
+        protected void GoToUrl(string url, int httpRetries) => GoToUrl(url, httpRetries, DefaultWaitDuration);
         protected void GoToUrl(string url, TimeSpan retryDelay) => GoToUrl(url, DefaultHttpAttemptsAmount, retryDelay);
         protected void GoToUrl(string url, int httpRetries, TimeSpan retryDelay)
         {
+            if (string.IsNullOrWhiteSpace(CurrentTab))
+            {
+                NewTab();
+            }
+            else
+            {
+                SwitchToTab(CurrentTab);
+            }
+
+
+            if (driver.Url == url)
+            {
+                return;
+            }
+
+            By errorSelectorChrome = By.ClassName("error-code");
+            
             for (int attempt = 0; attempt < httpRetries; attempt++)
             {
-                FocusHandle(CurrentProcessorHandle);
-
-                if (driver.Url == url)
-                {
-                    return;
-                }
-
                 driver.Navigate().GoToUrl(url);
 
-                By errorSelectorChrome = By.ClassName("error-code");
-
-                if (!AnyElementVisible(errorSelectorChrome))
+                if (!IsAnyElementVisible(errorSelectorChrome))
                 {
                     return;
                 }
@@ -142,13 +151,13 @@ namespace SteamGiveawaysBot.Processors
 
         protected void SwitchToIframe(int index)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
             driver.SwitchTo().Frame(index);
         }
         protected void SwitchToIframe(By selector) => SwitchToIframe(selector, DefaultTimeout);
         protected void SwitchToIframe(By selector, TimeSpan timeout)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
@@ -161,14 +170,14 @@ namespace SteamGiveawaysBot.Processors
                 }
                 finally
                 {
-                    Wait(DefaultWait);
+                    Wait();
                 }
             }
         }
 
         protected void ExecuteScript(string script)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
             scriptExecutor.ExecuteScript(script);
@@ -263,31 +272,37 @@ namespace SteamGiveawaysBot.Processors
             return element.Selected;
         }
 
-        protected void Wait() => Wait(DefaultWait);
+        protected void Wait() => Wait(DefaultWaitDuration);
         protected void Wait(int milliseconds) => Wait(TimeSpan.FromMilliseconds(milliseconds));
+        protected void Wait(DateTime targetTime) => Wait(targetTime - DateTime.Now);
         protected void Wait(TimeSpan timeSpan)
         {
+            if (timeSpan.TotalMilliseconds <= 0)
+            {
+                return;
+            }
+
             DateTime now = DateTime.Now;
             WebDriverWait wait = new WebDriverWait(driver, timeSpan);
             wait.PollingInterval = TimeSpan.FromMilliseconds(10);
             wait.Until(wd=> (DateTime.Now - now) - timeSpan > TimeSpan.Zero);
         }
 
-        protected void WaitUntilTextLength(By selector, int length) => WaitUntilTextLength(selector, length, DefaultTimeout);
-        protected void WaitUntilTextLength(By selector, int length, bool waitIndefinetely)
+        protected void WaitForTextLength(By selector, int length) => WaitForTextLength(selector, length, DefaultTimeout);
+        protected void WaitForTextLength(By selector, int length, bool waitIndefinetely)
         {
             if (waitIndefinetely)
             {
-                WaitUntilTextLength(selector, length, TimeSpan.FromDays(873));
+                WaitForTextLength(selector, length, TimeSpan.FromDays(873));
             }
             else
             {
-                WaitUntilTextLength(selector, length, DefaultTimeout);
+                WaitForTextLength(selector, length, DefaultTimeout);
             }
         }
-        protected void WaitUntilTextLength(By selector, int length, TimeSpan timeout)
+        protected void WaitForTextLength(By selector, int length, TimeSpan timeout)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
@@ -306,60 +321,172 @@ namespace SteamGiveawaysBot.Processors
             }
         }
 
-        protected void WaitUntilAnyElementExists(params By[] selectors) => WaitUntilAnyElementExists(DefaultTimeout, selectors);
-        protected void WaitUntilAnyElementExists(bool waitIndefinetely, params By[] selectors)
+        protected void WaitForAnyElementToExist(params By[] selectors) => WaitForAnyElementToExist(DefaultTimeout, selectors);
+        protected void WaitForAnyElementToExist(bool waitIndefinetely, params By[] selectors)
         {
             if (waitIndefinetely)
             {
-                WaitUntilAnyElementExists(TimeSpan.FromDays(873), selectors);
+                WaitForAnyElementToExist(TimeSpan.FromDays(873), selectors);
             }
             else
             {
-                WaitUntilAnyElementExists(DefaultTimeout, selectors);
+                WaitForAnyElementToExist(DefaultTimeout, selectors);
             }
         }
-        protected void WaitUntilAnyElementExists(TimeSpan timeout, params By[] selectors)
+        protected void WaitForAnyElementToExist(TimeSpan timeout, params By[] selectors)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
-            while (DateTime.Now - beginTime < timeout &&
-                   selectors.Any(ElementVisible))
+            while (DateTime.Now - beginTime < timeout && !DoesAnyElementExist(selectors))
             {
                 Wait();
             }
         }
 
-        protected void WaitUntilElementExists(By selector) => WaitUntilElementExists(selector, DefaultTimeout);
-        protected void WaitUntilElementExists(By selector, bool waitIndefinetely)
+        protected void WaitForAllElementsToExist(params By[] selectors) => WaitForAllElementsToExist(DefaultTimeout, selectors);
+        protected void WaitForAllElementsToExist(bool waitIndefinetely, params By[] selectors)
         {
             if (waitIndefinetely)
             {
-                WaitUntilElementExists(selector, TimeSpan.FromDays(873));
+                WaitForAllElementsToExist(TimeSpan.FromDays(873), selectors);
             }
             else
             {
-                WaitUntilElementExists(selector, DefaultTimeout);
+                WaitForAllElementsToExist(DefaultTimeout, selectors);
             }
         }
-        protected void WaitUntilElementExists(By selector, TimeSpan timeout)
+        protected void WaitForAllElementsToExist(TimeSpan timeout, params By[] selectors)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
-            while (DateTime.Now - beginTime < timeout &&
-                   !ElementVisible(selector))
+            while (DateTime.Now - beginTime < timeout && !DoAllElementsExist(selectors))
             {
                 Wait();
             }
         }
 
-        protected bool AnyElementVisible(params By[] selectors) => selectors.Any(ElementVisible);
-        protected bool ElementVisible(By selector)
+        protected void WaitForAnyElementToBeVisible(params By[] selectors) => WaitForAnyElementToBeVisible(DefaultTimeout, selectors);
+        protected void WaitForAnyElementToBeVisible(bool waitIndefinetely, params By[] selectors)
         {
-            FocusHandle(CurrentProcessorHandle);
+            if (waitIndefinetely)
+            {
+                WaitForAnyElementToBeVisible(TimeSpan.FromDays(873), selectors);
+            }
+            else
+            {
+                WaitForAnyElementToBeVisible(DefaultTimeout, selectors);
+            }
+        }
+        protected void WaitForAnyElementToBeVisible(TimeSpan timeout, params By[] selectors)
+        {
+            SwitchToTab(CurrentTab);
+
+            DateTime beginTime = DateTime.Now;
+
+            while (DateTime.Now - beginTime < timeout && !IsAnyElementVisible(selectors))
+            {
+                Wait();
+            }
+        }
+
+        protected void WaitForAllElementsToBeVisible(params By[] selectors) => WaitForAllElementsToBeVisible(DefaultTimeout, selectors);
+        protected void WaitForAllElementsToBeVisible(bool waitIndefinetely, params By[] selectors)
+        {
+            if (waitIndefinetely)
+            {
+                WaitForAllElementsToBeVisible(TimeSpan.FromDays(873), selectors);
+            }
+            else
+            {
+                WaitForAllElementsToBeVisible(DefaultTimeout, selectors);
+            }
+        }
+        protected void WaitForAllElementsToBeVisible(TimeSpan timeout, params By[] selectors)
+        {
+            SwitchToTab(CurrentTab);
+
+            DateTime beginTime = DateTime.Now;
+
+            while (DateTime.Now - beginTime < timeout && !AreAllElementsVisible(selectors))
+            {
+                Wait();
+            }
+        }
+
+        protected void WaitForElementToExist(By selector) => WaitForElementToExist(selector, DefaultTimeout);
+        protected void WaitForElementToExist(By selector, bool waitIndefinetely)
+        {
+            if (waitIndefinetely)
+            {
+                WaitForElementToExist(selector, TimeSpan.FromDays(873));
+            }
+            else
+            {
+                WaitForElementToExist(selector, DefaultTimeout);
+            }
+        }
+        protected void WaitForElementToExist(By selector, TimeSpan timeout)
+        {
+            SwitchToTab(CurrentTab);
+
+            DateTime beginTime = DateTime.Now;
+
+            while (DateTime.Now - beginTime < timeout && !DoesElementExist(selector))
+            {
+                Wait();
+            }
+        }
+
+        protected void WaitForElementToBeVisible(By selector) => WaitForElementToBeVisible(selector, DefaultTimeout);
+        protected void WaitForElementToBeVisible(By selector, bool waitIndefinetely)
+        {
+            if (waitIndefinetely)
+            {
+                WaitForElementToBeVisible(selector, TimeSpan.FromDays(873));
+            }
+            else
+            {
+                WaitForElementToBeVisible(selector, DefaultTimeout);
+            }
+        }
+        protected void WaitForElementToBeVisible(By selector, TimeSpan timeout)
+        {
+            SwitchToTab(CurrentTab);
+
+            DateTime beginTime = DateTime.Now;
+
+            while (DateTime.Now - beginTime < timeout && !IsElementVisible(selector))
+            {
+                Wait();
+            }
+        }
+
+        protected bool DoAllElementsExist(params By[] selectors) => selectors.All(DoesElementExist);
+        protected bool DoesAnyElementExist(params By[] selectors) => selectors.Any(DoesElementExist);
+        protected bool DoesElementExist(By selector)
+        {
+            SwitchToTab(CurrentTab);
+
+            try
+            {
+                IWebElement element = driver.FindElement(selector);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        protected bool AreAllElementsVisible(params By[] selectors) => selectors.All(IsElementVisible);
+        protected bool IsAnyElementVisible(params By[] selectors) => selectors.Any(IsElementVisible);
+        protected bool IsElementVisible(By selector)
+        {
+            SwitchToTab(CurrentTab);
 
             try
             {
@@ -378,7 +505,7 @@ namespace SteamGiveawaysBot.Processors
 
             foreach (By selector in selectors)
             {
-                if (ElementVisible(selector))
+                if (IsElementVisible(selector))
                 {
                     Click(selector);
 
@@ -389,8 +516,8 @@ namespace SteamGiveawaysBot.Processors
 
             if (!clicked)
             {
-                // TODO: Throw a proper exception
-                throw new Exception("No element to click");
+                // TODO: Use a proper message
+                throw new ElementNotVisibleException("No element to click");
             }
         }
 
@@ -404,29 +531,18 @@ namespace SteamGiveawaysBot.Processors
         {
             if (waitToExist)
             {
-                WaitUntilElementExists(selector);
+                WaitForElementToExist(selector);
             }
 
             Click(selector);
         }
 
-        protected void CheckCheckbox(By selector) => CheckCheckbox(selector, DefaultTimeout);
-        protected void CheckCheckbox(By selector, TimeSpan timeout)
+        protected void UpdateCheckbox(By selector, bool status) => UpdateCheckbox(selector, status);
+        protected void UpdateCheckbox(By selector, bool status, TimeSpan timeout)
         {
             IWebElement element = GetElement(selector, timeout);
 
-            if (!element.Selected)
-            {
-                Click(selector, timeout);
-            }
-        }
-
-        protected void UncheckCheckbox(By selector) => UncheckCheckbox(selector, DefaultTimeout);
-        protected void UncheckCheckbox(By selector, TimeSpan timeout)
-        {
-            IWebElement element = GetElement(selector, timeout);
-
-            if (element.Selected)
+            if (element.Selected != status)
             {
                 Click(selector, timeout);
             }
@@ -469,7 +585,7 @@ namespace SteamGiveawaysBot.Processors
         
         private IWebElement GetElement(By selector, TimeSpan timeout)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
@@ -504,7 +620,7 @@ namespace SteamGiveawaysBot.Processors
         
         private List<IWebElement> GetElements(By selector, TimeSpan timeout)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
@@ -522,7 +638,7 @@ namespace SteamGiveawaysBot.Processors
                 catch {  }
                 finally
                 {
-                    Wait(DefaultWait);
+                    Wait();
                 }
             }
 
@@ -531,7 +647,7 @@ namespace SteamGiveawaysBot.Processors
  
         private IAlert GetAlert(TimeSpan timeout)
         {
-            FocusHandle(CurrentProcessorHandle);
+            SwitchToTab(CurrentTab);
 
             DateTime beginTime = DateTime.Now;
 
