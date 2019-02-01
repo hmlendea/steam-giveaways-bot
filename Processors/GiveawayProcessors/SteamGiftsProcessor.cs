@@ -109,7 +109,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 string giveawayLink = GetHyperlink(giveawayTitleSelector);
                 string giveawayEndTimeTimestamp = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
-                string priceString = GetText(giveawayPriceSelector);
+                string priceString = GetElements(giveawayPriceSelector).Last().Text;
                 string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
 
                 int price = int.Parse(priceSubstring);
@@ -135,7 +135,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (!IsElementVisible(enterButtonSelector))
             {
-                string errorText = GetText(errorSelector).Trim();;
+                string errorText = GetText(errorSelector).Trim();
 
                 if (errorText.Contains("Remove Entry"))
                 {
