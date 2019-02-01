@@ -158,10 +158,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             for (int i = 0; i < rewardItems.Count; i++)
             {
-                string rewardItemXpath = $"//div[@class='table__row-outer-wrap']/div[{i + 1}]";
+                string rewardItemXpath = $"//div[@class='table__rows']/div[{i + 1}]/div[1]";
                 
-                By receivedStatusSelector = By.XPath($"{rewardItemXpath}/div[4]/div[contains(@class,'is-hidden')]");
-                By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[3]");
+                By receivedStatusSelector = By.XPath($"{rewardItemXpath}/div[4]/div[contains(@class,'table__gift-feedback-awaiting-reply') and contains(@class,'is-hidden')]");
+                By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
                 By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
                 By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
                 By keySelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
@@ -182,7 +182,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 {
                     string keyStatus = GetText(keyStatusSelector).Trim();
 
-                    if (keyStatus.Length < 6)
+                    if (keyStatus.Length.Equals('-'))
                     {
                         continue;
                     }
