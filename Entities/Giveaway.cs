@@ -24,11 +24,15 @@ namespace SteamGiveawaysBot.Entities
             }
         }
 
-        public DateTime EndTime { get; set; }
+        public int Price { get; }
 
-        public Giveaway(string url)
+        public DateTime EndTime { get; }
+
+        public Giveaway(string url, int price, DateTime endTime)
         {
             Url = url;
+            Price = price;
+            EndTime = endTime;
         }
         
         /// <summary>

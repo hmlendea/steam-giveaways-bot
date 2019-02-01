@@ -46,6 +46,8 @@ namespace SteamGiveawaysBot
         {
             while (IsRunning)
             {
+                IWebDriver driver = SetupDriver();
+
                 try
                 {
                     if (!IsInternetConnected())
@@ -56,49 +58,42 @@ namespace SteamGiveawaysBot
 
                     if (IsInternetConnected())
                     {
-                        DoStuff();
+                        DoStuff(driver);
                     }
                 }
-                catch (AccountSuspendedException ex)
+                catch (AccountSuspendedException)
                 {
                     throw;
                 }
                 catch (Exception ex)
                 {
+                    driver.Quit();
                     Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
 
-        void DoStuff()
+        void DoStuff(IWebDriver driver)
         {
-            IWebDriver driver = SetupDriver();
+            SteamProcessor steamProcessor = new SteamProcessor(driver, account);
+            steamProcessor.LogIn();
+
+            SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
 
             try
             {
-                SteamProcessor steamProcessor = new SteamProcessor(driver, account);
-                Log.Info($"Logging in {account.Username} on Steam");
-                steamProcessor.LogIn();
-
-                SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
                 steamGiftsProcessor.LogIn();
-
-                if (!steamGiftsProcessor.IsRegistered)
-                {
-                    steamProcessor.GatherProfileInfo();
-                    steamGiftsProcessor.Register();
-                }
-                
-                steamProcessor.Close();
-
-                steamGiftsProcessor.Run();
-                steamGiftsProcessor.Stop();
             }
-            catch
+            catch (AccountNotRegisteredException)
             {
-                driver.Quit();
-                throw;
+                steamProcessor.GatherProfileInfo();
+                steamGiftsProcessor.Register();
             }
+            
+            steamProcessor.Close();
+
+            steamGiftsProcessor.Run();
+            steamGiftsProcessor.Stop();
         }
 
         IWebDriver SetupDriver()

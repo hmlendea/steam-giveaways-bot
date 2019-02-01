@@ -51,6 +51,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected AccountDetails account;
 
+        protected Giveaway LastProcessedGiveaway;
+
         DateTime LastRewardsChekingDate { get; set; }
 
         TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
@@ -59,6 +61,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             : base(driver)
         {
             this.account = account;
+
+            IsRegistered = true;
         }
 
         public void Run()
@@ -93,15 +97,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             OnStopped(new EventArgs());
         }
 
-        public abstract void GatherInfo();
-
         public abstract void LogIn();
 
         public abstract void Register();
+
+        protected abstract void GatherInfo();
         
         protected abstract Giveaway FindGiveaway();
         
-        protected abstract void ProcessGiveaway(Giveaway giveaway);
+        protected abstract void JoinGiveaway(Giveaway giveaway);
 
         protected abstract void ProcessRewards();
 
@@ -116,30 +120,43 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     throw new AccountSuspendedException(account.Username);
                 }
 
-                if (CurrentRewards > 0)
+                if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)
                 {
-                    if (LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
-                    {
-                        ProcessRewards();
-                    }
+                    Log.Info($"Processing the rewards ({CurrentRewards})");
+                    ProcessRewards();
                 }
 
                 if (CurrentPoints >= MinimumPoints)
                 {
-                    Giveaway giveaway = FindGiveaway();
-                    ProcessGiveaway(giveaway);
+                    FindAndJoinGiveaway();
                 }
                 else
                 {
-                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points ({CurrentPoints}/{MaximumPoints}, Min: {MinimumPoints})");
+                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge the points to at least {MinimumPoints} (Currently {CurrentPoints}/{MaximumPoints})");
                     
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }
 
-                if (NextCheckTime > DateTime.Now)
-                {
-                    Wait(NextCheckTime);
-                }
+                Wait(NextCheckTime);
+            }
+        }
+
+        void FindAndJoinGiveaway()
+        {
+            Giveaway giveaway = FindGiveaway();
+            string giveawayEndTimestamp = giveaway.EndTime.ToString("HH:mm");
+
+            LastProcessedGiveaway = giveaway;
+            NextCheckTime = giveaway.EndTime;
+
+            try
+            {
+                JoinGiveaway(giveaway);
+                Log.Info($"Joined giveaway '{giveaway.GiveawayCode}' for {giveaway.Price} points. Ends at {giveawayEndTimestamp}");
+            }
+            catch (UnjoinableGiveawayException ex)
+            {
+                Log.Warn($"{ex.Message}. Ends at {giveawayEndTimestamp}");
             }
         }
 

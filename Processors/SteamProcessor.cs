@@ -33,6 +33,7 @@ namespace SteamGiveawaysBot.Processors
 
         public void LogIn()
         {
+            Log.Info($"Logging in {account.Username} on Steam");
             GoToUrl(LoginUrl);
 
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");

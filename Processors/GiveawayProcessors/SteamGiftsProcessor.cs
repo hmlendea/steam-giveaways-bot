@@ -9,6 +9,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -21,9 +22,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string RewardsUrl => "https://www.steamgifts.com/giveaways/won";
 
-        int unclaimedRewards;
-        Giveaway lastProcessedGiveaway;
-
         public SteamGiftsProcessor(IWebDriver driver, AccountDetails account)
             : base(driver, account)
         {
@@ -31,9 +29,51 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             MaximumPoints = 400;
         }
 
-        public override void GatherInfo()
+        public override void LogIn()
         {
-            //Log.Info($"Gathering information");
+            Log.Info($"Logging in {account.Username} on SteamGifts");
+            GoToUrl(LogInUrl);
+
+            Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
+            Click(By.Id("imageLogin"));
+
+            WaitForElementToExist(By.ClassName("nav__left-container"), false);
+
+            if (DoesElementExist(By.Name("username")))
+            {
+                IsRegistered = false;
+                IsLoggedIn = false;
+
+                throw new AccountNotRegisteredException(account.Username);
+            }
+
+            IsLoggedIn = true;
+        }
+
+        public override void Register()
+        {
+            Log.Info($"Registering user '{account.Username}' on SteamGifts");
+
+            By usernameSelector = By.Name("username");
+            By emailSelector = By.Name("email");
+            By countrySelector = By.Name("country");
+
+            SetText(usernameSelector, account.Username);
+            SetText(emailSelector, account.EmailAddress);
+            SelectByValue(countrySelector, account.Country.SgCode.ToString());
+
+            // Say no to emails
+            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
+            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
+
+            // Complete registration
+            Click(By.XPath(@"//form/div[6]/div[1]"));
+            
+            IsRegistered = true;
+        }
+
+        protected override void GatherInfo()
+        {
             GoToUrl(HomePageUrl);
 
             By loginButtonSelector = By.ClassName("nav__sits");
@@ -48,8 +88,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             IsLoggedIn = true;
 
-            CurrentPoints = GetCurrentPoints();
-            CurrentRewards = GetCurrentRewards();
+            CurrentPoints = GatherCurrentPoints();
+            CurrentRewards = GatherCurrentRewards();
 
             if (DoesElementExist(suspensionsButtonSelector))
             {
@@ -57,55 +97,27 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
         }
 
-        public override void LogIn()
-        {
-            Log.Info($"Logging in {account.Username} on SteamGifts");
-            GoToUrl(LogInUrl);
-
-            Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
-            Click(By.Id("imageLogin"));
-
-            WaitForElementToExist(By.ClassName("nav__left-container"), false);
-
-            IsRegistered = !DoesElementExist(By.Name("username"));
-            IsLoggedIn = IsRegistered;
-        }
-
-        public override void Register()
-        {
-            Log.Info($"Registering user '{account.Username}' on SteamGifts");
-
-            SetText(By.Name("username"), account.Username);
-            SetText(By.Name("email"), account.EmailAddress);
-            SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
-
-            // Say no to emails
-            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
-            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
-
-            // Complete registration
-            Click(By.XPath(@"//form/div[6]/div[1]"));
-            
-            IsRegistered = true;
-        }
-
         protected override Giveaway FindGiveaway()
         {
-            //Log.Info($"Finding a giveaway to join");
             GoToUrl(HomePageUrl);
 
             for (int i = 1; i <= 50; i++)
             {
                 By giveawayTitleSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
                 By giveawayEndTimeSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/div[1]/div[1]/span");
+                By giveawayPriceSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/span");
 
                 string giveawayLink = GetHyperlink(giveawayTitleSelector);
                 string giveawayEndTimeTimestamp = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
+                string priceString = GetText(giveawayPriceSelector);
+                string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
 
-                Giveaway giveaway = new Giveaway(giveawayLink);
-                giveaway.EndTime = DateTimeUtils.FromUnixTime(giveawayEndTimeTimestamp);
+                int price = int.Parse(priceSubstring);
+                DateTime endTime = DateTimeUtils.FromUnixTime(giveawayEndTimeTimestamp);
 
-                if (lastProcessedGiveaway != giveaway)
+                Giveaway giveaway = new Giveaway(giveawayLink, price, endTime);
+
+                if (LastProcessedGiveaway != giveaway)
                 {
                     return giveaway;
                 }
@@ -114,27 +126,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             return null;
         }
 
-        protected override void ProcessGiveaway(Giveaway giveaway)
+        protected override void JoinGiveaway(Giveaway giveaway)
         {
-            //Log.Info($"Processing giveaway '{giveaway.GiveawayCode}'");
             GoToUrl(giveaway.Url);
 
-            By gameTitleSelector = By.ClassName("featured__heading__medium");
-            By priceSelector = By.ClassName("featured__heading__small");
             By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
             By enterButtonSelector = By.ClassName("sidebar__entry-insert");
 
-            string gameTitle = GetText(gameTitleSelector);
-            string priceString = GetElements(priceSelector).Last().Text;
-            string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
-
-            int price = int.Parse(priceSubstring);
-
-            //Log.Info($"Giveaway info retrieved for '{giveaway.GiveawayCode}': \"{gameTitle}\" ({price}P), ends at {endTime}");
-
-            NextCheckTime = giveaway.EndTime;
-
-            if (DoesElementExist(errorSelector))
+            if (!IsElementVisible(enterButtonSelector))
             {
                 string errorText = GetText(errorSelector).Trim();;
 
@@ -143,20 +142,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     errorText = "Already entered";
                 }
 
-                Log.Warn($"Cannot enter '{giveaway.GiveawayCode}': \"{errorText}\". Ends at {giveaway.EndTime}");
-            }
-            else
-            {
-                Log.Info($"Joining giveawayy '{giveaway.GiveawayCode}'. Ends at {giveaway.EndTime}");
-                Click(enterButtonSelector);
+                throw new UnjoinableGiveawayException(giveaway.GiveawayCode, errorText);
             }
 
-            lastProcessedGiveaway = giveaway;
+            Click(enterButtonSelector);
         }
 
         protected override void ProcessRewards()
         {
-            Log.Info($"Processing the rewards ({CurrentRewards})");
             GoToUrl(RewardsUrl);
 
             By rewardItemSelector = By.ClassName("table__row-inner-wrap");
@@ -204,16 +197,23 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
         }
 
-        int GetCurrentPoints()
+        int GatherCurrentPoints()
         {
-            string pointsString = GetText(By.ClassName("nav__points"));
+            By pointsSelector = By.ClassName("nav__points");
+            string pointsString = GetText(pointsSelector);
+
+            if (string.IsNullOrWhiteSpace(pointsString))
+            {
+                throw new FormatException("Cannot parse the current points count");
+            }
 
             return int.Parse(pointsString);
         }
 
-        int GetCurrentRewards()
+        int GatherCurrentRewards()
         {
-            string rewardsString = GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"));
+            By rewardsSelector = By.XPath(@"/html/body/header/nav/div[2]/div[2]/a");
+            string rewardsString = GetText(rewardsSelector);
 
             if (string.IsNullOrWhiteSpace(rewardsString))
             {
