@@ -6,6 +6,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Utils;
@@ -20,12 +21,16 @@ namespace SteamGiveawaysBot
 
         public bool IsRunning { get; private set; }
 
+        public bool IsHeadless { get; set; }
+
         AccountDetails account;
         TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
         public Bot(AccountDetails account)
         {
             this.account = account;
+
+            IsHeadless = true;
         }
 
         public void Run()
@@ -53,6 +58,10 @@ namespace SteamGiveawaysBot
                     {
                         DoStuff();
                     }
+                }
+                catch (AccountSuspendedException ex)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -92,10 +101,14 @@ namespace SteamGiveawaysBot
 			options.AddArgument("--disable-translate");
 			options.AddArgument("--disable-infobars");
             options.AddArgument("--disable-extensions");
-            options.AddArgument("--start-maximized");
-            options.AddArgument("--headless");
-            options.AddArgument("--disable-gpu");
-			options.AddArgument("--window-size=1920,1080");
+
+            if (IsHeadless)
+            {
+                options.AddArgument("--headless");
+                options.AddArgument("--disable-gpu");
+                options.AddArgument("--window-size=1920,1080");
+                options.AddArgument("--start-maximized");
+            }
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.SuppressInitialDiagnosticInformation = true;

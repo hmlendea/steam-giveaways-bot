@@ -57,8 +57,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             if (ElementVisible(suspensionsButtonSelector))
             {
                 IsSuspended = true;
-
-                throw new Exception("This account is suspended");
             }
         }
 

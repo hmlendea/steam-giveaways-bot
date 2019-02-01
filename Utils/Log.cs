@@ -9,17 +9,22 @@ namespace SteamGiveawaysBot.Utils
 
         public static void Info(string message)
         {
-            WriteLine(message, "INFO");
+            WriteLine(message, "INFO ");
         }
 
         public static void Warn(string message)
         {
-            WriteLine(message, "WARN");
+            WriteLine(message, "WARN ");
         }
 
         public static void Error(string message)
         {
             WriteLine(message, "ERROR");
+        }
+
+        public static void Fatal(string message)
+        {
+            WriteLine(message, "FATAL");
         }
         
         static void WriteLine(string message, string level)

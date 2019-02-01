@@ -10,6 +10,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -101,6 +102,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             {
                 GatherInfo();
 
+                if (IsSuspended)
+                {
+                    throw new AccountSuspendedException(account.Username);
+                }
+
                 if (CurrentRewards > 0)
                 {
                     if (LastRewardsChekingDate.Add(RewardsCheckingInterval) < DateTime.Now)
@@ -109,14 +115,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                if (CurrentPoints > MinimumPoints)
+                if (CurrentPoints >= MinimumPoints)
                 {
                     Giveaway giveaway = FindGiveaway();
                     ProcessGiveaway(giveaway);
                 }
                 else
                 {
-                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points");
+                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge points ({CurrentPoints}/{MaximumPoints}, Min: {MinimumPoints})");
                     
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }

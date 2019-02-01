@@ -46,13 +46,14 @@ namespace SteamGiveawaysBot
             {
                 bot = new Bot(account);
                 bot.Stopped += bot_OnStopped;
+                bot.IsHeadless = !args.Contains("--gui");
                 bot.Run();
 
                 Console.ReadLine();
             }
             catch (Exception ex)
             {
-                Log.Error($"Fatality: {ex.Message}");
+                Log.Fatal($"Fatal exception: {ex.Message}");
             }
         }
 
