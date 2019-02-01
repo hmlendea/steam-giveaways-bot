@@ -27,6 +27,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public bool IsLoggedIn { get; protected set; }
 
+        public bool IsRegistered { get; protected set; }
+
         public bool IsSuspended { get; protected set; }
 
         public int CurrentPoints { get; protected set; }
@@ -73,6 +75,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 LogIn();
             }
 
+            if (!IsRegistered)
+            {
+                Register();
+            }
+
             RunLoop();
             OnStopped(new EventArgs());
         }
@@ -89,6 +96,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         public abstract void GatherInfo();
 
         public abstract void LogIn();
+
+        public abstract void Register();
         
         protected abstract Giveaway FindGiveaway();
         

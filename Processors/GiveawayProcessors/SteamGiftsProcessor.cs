@@ -70,10 +70,26 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             WaitUntilElementExists(By.ClassName("nav__left-container"), false);
 
-            if (ElementVisible(By.Name("username")))
-            {
-                Register();
-            }
+            IsRegistered = !ElementVisible(By.Name("username"));
+            IsLoggedIn = IsRegistered;
+        }
+
+        public override void Register()
+        {
+            Log.Info($"Registering user '{account.Username}' on SteamGifts");
+
+            SetText(By.Name("username"), account.Username);
+            SetText(By.Name("email"), account.EmailAddress);
+            SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
+
+            // Say no to emails
+            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
+            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
+
+            // Complete registration
+            Click(By.XPath(@"//form/div[6]/div[1]"));
+            
+            IsRegistered = true;
         }
 
         protected override Giveaway FindGiveaway()
@@ -189,22 +205,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 MailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
                 Click(receivedRadioSelector);
             }
-        }
-
-        void Register()
-        {
-            Log.Info($"Registering user '{account.Username}' on SteamGifts");
-
-            SetText(By.Name("username"), account.Username);
-            SetText(By.Name("email"), account.EmailAddress);
-            SelectByValue(By.Name("country"), account.Country.SgCode.ToString());
-
-            // Say no to emails
-            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
-            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
-
-            // Complete registration
-            Click(By.XPath(@"//form/div[6]/div[1]"));
         }
 
         int GetCurrentPoints()

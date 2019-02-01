@@ -79,10 +79,18 @@ namespace SteamGiveawaysBot
                 SteamProcessor steamProcessor = new SteamProcessor(driver, account);
                 Log.Info($"Logging in {account.Username} on Steam");
                 steamProcessor.LogIn();
-                steamProcessor.GatherProfileInfo();
-                steamProcessor.Close();
 
                 SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
+                steamGiftsProcessor.LogIn();
+
+                if (!steamGiftsProcessor.IsRegistered)
+                {
+                    steamProcessor.GatherProfileInfo();
+                    steamGiftsProcessor.Register();
+                }
+                
+                steamProcessor.Close();
+
                 steamGiftsProcessor.Run();
                 steamGiftsProcessor.Stop();
             }
