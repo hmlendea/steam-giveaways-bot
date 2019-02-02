@@ -67,6 +67,9 @@ namespace SteamGiveawaysBot
                 }
                 catch (Exception ex)
                 {
+                    Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
+                    crashScreenshot.SaveAsFile(Log.LogFilePath + ".png"); // TODO: Proper location
+
                     driver.Quit();
                     Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 }
@@ -111,6 +114,7 @@ namespace SteamGiveawaysBot
                 options.AddArgument("--disable-gpu");
                 options.AddArgument("--window-size=1920,1080");
                 options.AddArgument("--start-maximized");
+                options.AddArgument("--blink-settings=imagesEnabled=false");
             }
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();

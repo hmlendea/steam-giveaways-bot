@@ -80,7 +80,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             By pointsSelector = By.ClassName("nav__points");
             By suspensionsButtonSelector = By.XPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
 
-            if (DoesElementExist(loginButtonSelector) || !DoesElementExist(pointsSelector))
+            WaitForAnyElementToExist(loginButtonSelector, pointsSelector);
+
+            if (DoesElementExist(loginButtonSelector))
             {
                 IsLoggedIn = false;
                 return;
@@ -135,11 +137,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (!IsElementVisible(enterButtonSelector))
             {
-                string errorText = GetText(errorSelector).Trim();
-
-                if (errorText.Contains("Remove Entry"))
+                string errorText = "Giveaway ended";
+                
+                if (IsElementVisible(errorSelector))
                 {
-                    errorText = "Already entered";
+                    errorText = GetText(errorSelector).Trim();
+
+                    if (errorText.Contains("Remove Entry"))
+                    {
+                        errorText = "Already entered";
+                    }
                 }
 
                 throw new UnjoinableGiveawayException(giveaway.GiveawayCode, errorText);
@@ -164,7 +171,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
                 By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
                 By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
-                By keySelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
+                By keyClipboardSelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
                 By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
 
                 if (DoesElementExist(receivedStatusSelector))
@@ -175,14 +182,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 if (DoesElementExist(viewKeyButtonSelector))
                 {
                     Click(viewKeyButtonSelector);
-                    WaitForElementToExist(keySelector);
+                    WaitForElementToExist(keyClipboardSelector);
                 }
 
-                if (!IsElementVisible(keySelector))
+                if (!DoesElementExist(keyClipboardSelector))
                 {
                     string keyStatus = GetText(keyStatusSelector).Trim();
 
-                    if (keyStatus.Length.Equals('-'))
+                    if (keyStatus.Length == 1)
                     {
                         continue;
                     }
@@ -190,7 +197,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 string gameTitle = GetText(gameTitleSelector);
                 string giveawayLink = GetHyperlink(gameTitleSelector);
-                string gameKey = GetAttribute(keySelector, "data-clipboard-text");
+                string gameKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
                 MailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
                 Click(receivedRadioSelector);
@@ -200,27 +207,27 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         int GatherCurrentPoints()
         {
             By pointsSelector = By.ClassName("nav__points");
-            string pointsString = GetText(pointsSelector);
+            string pointsText = GetText(pointsSelector);
 
-            if (string.IsNullOrWhiteSpace(pointsString))
+            if (string.IsNullOrWhiteSpace(pointsText))
             {
                 throw new FormatException("Cannot parse the current points count");
             }
 
-            return int.Parse(pointsString);
+            return int.Parse(pointsText);
         }
 
         int GatherCurrentRewards()
         {
             By rewardsSelector = By.XPath(@"/html/body/header/nav/div[2]/div[2]/a");
-            string rewardsString = GetText(rewardsSelector);
+            string rewardsText = GetText(rewardsSelector);
 
-            if (string.IsNullOrWhiteSpace(rewardsString))
+            if (string.IsNullOrWhiteSpace(rewardsText))
             {
                 return 0;
             }
 
-            return int.Parse(rewardsString);
+            return int.Parse(rewardsText);
         }
     }
 }

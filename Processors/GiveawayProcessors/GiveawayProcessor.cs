@@ -63,6 +63,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             this.account = account;
 
             IsRegistered = true;
+            CurrentPoints = MaximumPoints;
         }
 
         public void Run()
@@ -124,6 +125,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 {
                     Log.Info($"Processing the rewards ({CurrentRewards})");
                     ProcessRewards();
+
+                    LastRewardsChekingDate = DateTime.Now;
                 }
 
                 if (CurrentPoints >= MinimumPoints)
