@@ -19,9 +19,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
     {
         public abstract string HomePageUrl { get; }
 
+        public abstract string RegistrationUrl { get; }
+
         public abstract string LogInUrl { get; }
 
         public abstract string RewardsUrl { get; }
+
+        public abstract string SettingsUrl { get; }
 
         public bool IsRunning { get; private set; }
 

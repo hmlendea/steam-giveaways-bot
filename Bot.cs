@@ -90,7 +90,10 @@ namespace SteamGiveawaysBot
             catch (AccountNotRegisteredException)
             {
                 steamProcessor.GatherProfileInfo();
+                steamProcessor.UpdatePrivacySettings();
+                
                 steamGiftsProcessor.Register();
+                steamGiftsProcessor.ApplyCustomSettings();
             }
             
             steamProcessor.Close();

@@ -71,6 +71,17 @@ namespace SteamGiveawaysBot.Processors
             }
         }
 
+        public void UpdatePrivacySettings()
+        {
+            GoToUrl(PrivacySettingsUrl);
+
+            By gameDetailsDropDownSelector = By.XPath(@"/html/body/div[1]/div[7]/div[3]/div/div[2]/div/div[1]/div[3]/div/div[6]/div[1]/div");
+            By gameDetailsPublicOptionSelector = By.XPath(@"/html/body/div[4]/div/div/div[1]");
+
+            Click(gameDetailsDropDownSelector);
+            Click(gameDetailsPublicOptionSelector);
+        }
+
         Country GetCountry()
         {
             By countryFlagSelector = By.ClassName("profile_flag");

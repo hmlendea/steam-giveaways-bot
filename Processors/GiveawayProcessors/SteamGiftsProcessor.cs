@@ -16,11 +16,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public sealed class SteamGiftsProcessor : GiveawayProcessor
     {
-        public override string HomePageUrl => "https://www.steamgifts.com/";
+        public override string HomePageUrl => "https://www.steamgifts.com";
 
-        public override string LogInUrl => "https://www.steamgifts.com/";
+        public override string RegistrationUrl => HomePageUrl;
 
-        public override string RewardsUrl => "https://www.steamgifts.com/giveaways/won";
+        public override string LogInUrl => HomePageUrl;
+
+        public override string RewardsUrl => $"{HomePageUrl}/giveaways/won";
+
+        public override string SettingsUrl => $"{HomePageUrl}/account/settings/giveaways";
 
         public SteamGiftsProcessor(IWebDriver driver, AccountDetails account)
             : base(driver, account)
@@ -29,20 +33,66 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             MaximumPoints = 400;
         }
 
+        public override void Register()
+        {
+            GoToUrl(RegistrationUrl);
+
+            By signInButton1Selector = By.XPath(@"//div[@class='nav__right-container']/div/a");
+            By signInButton2Selector = By.Id("imageLogin");
+            By registerButtonSelector = By.XPath(@"//div[contains(@class, 'form__submit-button')]");
+            By privacyScreenshotSelector = By.ClassName("form__screenshot");
+
+            By usernameTextBoxSelector = By.XPath(@"//form/div[1]/div[2]/input");
+            By emailTextBoxSelector = By.XPath(@"//form/div[2]/div[2]/input");
+            By countryDropDownSelector = By.XPath(@"//select[@name='country']");
+            By noEmailsRadioButton1Selector = By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]");
+            By noEmailsRadioButton2Selector = By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]");
+
+            if (!IsElementVisible(usernameTextBoxSelector))
+            {
+                Click(signInButton1Selector);
+                Click(signInButton2Selector);
+            }
+
+            if (IsElementVisible(privacyScreenshotSelector))
+            {
+                throw new AccountRegistrationException("Cannot register on SteamGifts due to invalid Steam privacy settings");
+            }
+
+            SetText(usernameTextBoxSelector, account.Username);
+            SetText(emailTextBoxSelector, account.EmailAddress);
+            SelectByValue(countryDropDownSelector, account.Country.SgCode.ToString());
+            
+            Click(noEmailsRadioButton1Selector);
+            Click(noEmailsRadioButton2Selector);
+
+            Click(registerButtonSelector);
+
+            account.IsRegisteredSteamGifts = true;
+        }
+
         public override void LogIn()
         {
             Log.Info($"Logging in {account.Username} on SteamGifts");
             GoToUrl(LogInUrl);
+
+            By privacyScreenshotSelector = By.ClassName("form__screenshot");
+            By usernameTextBoxSelector = By.XPath(@"//form/div[1]/div[2]/input");
 
             Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
             Click(By.Id("imageLogin"));
 
             WaitForElementToExist(By.ClassName("nav__left-container"), false);
 
-            if (DoesElementExist(By.Name("username")))
+            if (DoesAnyElementExist(privacyScreenshotSelector, usernameTextBoxSelector))
             {
                 IsRegistered = false;
                 IsLoggedIn = false;
+
+                if (IsElementVisible(privacyScreenshotSelector))
+                {
+                    Wait(TimeSpan.FromSeconds(30));
+                }
 
                 throw new AccountNotRegisteredException(account.Username);
             }
@@ -50,26 +100,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             IsLoggedIn = true;
         }
 
-        public override void Register()
+        public void ApplyCustomSettings()
         {
-            Log.Info($"Registering user '{account.Username}' on SteamGifts");
+            GoToUrl(SettingsUrl);
 
-            By usernameSelector = By.Name("username");
-            By emailSelector = By.Name("email");
-            By countrySelector = By.Name("country");
+            By hideHighLevelGiveawaysSelector = By.XPath(@"/html/body/div[1]/div/div/div[2]/form/div/div[4]/div[2]/div/div[1]/i[1]");
+            By saveButtonSelector = By.XPath(@"//div[contains(@class,'form__submit-button')]");
 
-            SetText(usernameSelector, account.Username);
-            SetText(emailSelector, account.EmailAddress);
-            SelectByValue(countrySelector, account.Country.SgCode.ToString());
+            UpdateCheckbox(hideHighLevelGiveawaysSelector, true);
 
-            // Say no to emails
-            Click(By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]"));
-            Click(By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]"));
-
-            // Complete registration
-            Click(By.XPath(@"//form/div[6]/div[1]"));
-            
-            IsRegistered = true;
+            Click(saveButtonSelector);
         }
 
         protected override void GatherInfo()
