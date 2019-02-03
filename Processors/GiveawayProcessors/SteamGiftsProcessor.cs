@@ -53,7 +53,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 Click(signInButton1Selector);
                 Click(signInButton2Selector);
             }
-
+            
             if (IsElementVisible(privacyScreenshotSelector))
             {
                 throw new AccountRegistrationException("Cannot register on SteamGifts due to invalid Steam privacy settings");
@@ -150,14 +150,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 By giveawayPriceSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/span");
 
                 string giveawayLink = GetHyperlink(giveawayTitleSelector);
-                string giveawayEndTimeTimestamp = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
+                string endTimeSelector = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
+                string gameTitle = GetText(giveawayTitleSelector);
                 string priceString = GetElements(giveawayPriceSelector).Last().Text;
                 string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
 
                 int price = int.Parse(priceSubstring);
-                DateTime endTime = DateTimeUtils.FromUnixTime(giveawayEndTimeTimestamp);
+                DateTime endTime = DateTimeUtils.FromUnixTime(endTimeSelector);
 
-                Giveaway giveaway = new Giveaway(giveawayLink, price, endTime);
+                Giveaway giveaway = new Giveaway(giveawayLink, gameTitle, price, endTime);
 
                 if (LastProcessedGiveaway != giveaway)
                 {
@@ -172,8 +173,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             GoToUrl(giveaway.Url);
 
-            By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
             By enterButtonSelector = By.ClassName("sidebar__entry-insert");
+            By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+
+            WaitForAnyElementToBeVisible(TimeSpan.FromSeconds(3), enterButtonSelector, errorSelector);
 
             if (!IsElementVisible(enterButtonSelector))
             {
@@ -189,7 +192,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                throw new UnjoinableGiveawayException(giveaway.GiveawayCode, errorText);
+                throw new UnjoinableGiveawayException(giveaway, errorText);
             }
 
             Click(enterButtonSelector);

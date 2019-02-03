@@ -15,8 +15,11 @@ namespace SteamGiveawaysBot.Processors
 {
     public sealed class SteamProcessor : WebProcessor
     {
-        const string LoginUrl = "https://store.steampowered.com/login/?redir=account%2F&redir_ssl=1";
-        const string AccountUrl = "https://store.steampowered.com/account/";
+        public string HomePageUrl => "https://store.steampowered.com";
+        public string CommunityUrl => "https://steamcommunity.com";
+        public string LoginUrl => $"{HomePageUrl}/login/?redir=&redir_ssl=1";
+        public string AccountUrl => $"{HomePageUrl}/account/";
+        public string ChatUrl => $"{CommunityUrl}/chat/";
 
         AccountDetails account;
 
@@ -43,6 +46,14 @@ namespace SteamGiveawaysBot.Processors
             
             Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
             
+            WaitForElementToExist(avatarSelector);
+        }
+
+        public void VisitChat()
+        {
+            GoToUrl(ChatUrl);
+
+            By avatarSelector = By.ClassName("currentUserAvatar");
             WaitForElementToExist(avatarSelector);
         }
 

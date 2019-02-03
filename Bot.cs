@@ -23,6 +23,8 @@ namespace SteamGiveawaysBot
 
         public bool IsHeadless { get; set; }
 
+        public string CrashScreenshotFilePath { get; set; }
+
         AccountDetails account;
         TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
@@ -67,9 +69,12 @@ namespace SteamGiveawaysBot
                 }
                 catch (Exception ex)
                 {
-                    Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
-                    crashScreenshot.SaveAsFile(Log.LogFilePath + ".png"); // TODO: Proper location
-
+                    if (!string.IsNullOrWhiteSpace(CrashScreenshotFilePath))
+                    {
+                        Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
+                        crashScreenshot.SaveAsFile(Log.LogFilePath + ".png"); // TODO: Proper location
+                    }
+                    
                     driver.Quit();
                     Log.Error($"{ex.Message}\n{ex.StackTrace}");
                 }
@@ -80,6 +85,7 @@ namespace SteamGiveawaysBot
         {
             SteamProcessor steamProcessor = new SteamProcessor(driver, account);
             steamProcessor.LogIn();
+            steamProcessor.VisitChat();
 
             SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
 

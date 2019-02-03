@@ -15,6 +15,8 @@ namespace SteamGiveawaysBot.Entities
             }
         }
 
+        public string SteamAppUrl => $"https://store.steampowered.com/app/{SteamAppId}";
+
         public string SteamAppId
         {
             get
@@ -24,13 +26,16 @@ namespace SteamGiveawaysBot.Entities
             }
         }
 
+        public string GameTitle { get; }
+
         public int Price { get; }
 
         public DateTime EndTime { get; }
 
-        public Giveaway(string url, int price, DateTime endTime)
+        public Giveaway(string url, string gameTitle, int price, DateTime endTime)
         {
             Url = url;
+            GameTitle = gameTitle;
             Price = price;
             EndTime = endTime;
         }
@@ -80,6 +85,21 @@ namespace SteamGiveawaysBot.Entities
             }
 
             return Equals((Giveaway)obj);
+        }
+
+        public static bool operator == (Giveaway me, Giveaway other)
+        {
+            if (me is null)
+            {
+                return other is null;
+            }
+
+            return me.Equals(other);
+        }
+
+        public static bool operator != (Giveaway me, Giveaway other)
+        {
+            return !(me == other);
         }
 
         /// <summary>

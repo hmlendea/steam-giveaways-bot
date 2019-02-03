@@ -67,13 +67,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             this.account = account;
 
             IsRegistered = true;
-            CurrentPoints = MaximumPoints;
         }
 
         public void Run()
         {
             //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
 
+            CurrentPoints = MaximumPoints;
             IsRunning = true;
             OnStarted(new EventArgs());
 
@@ -151,19 +151,27 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         void FindAndJoinGiveaway()
         {
             Giveaway giveaway = FindGiveaway();
+
+            if (giveaway is null)
+            {
+                Log.Warn($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
+                NextCheckTime = DateTime.Now + DefaultWaitDuration;
+                return;
+            }
+
             string giveawayEndTimestamp = giveaway.EndTime.ToString("HH:mm");
 
             LastProcessedGiveaway = giveaway;
-            NextCheckTime = giveaway.EndTime;
+            NextCheckTime = giveaway.EndTime.AddSeconds(-5);
 
             try
             {
                 JoinGiveaway(giveaway);
-                Log.Info($"Joined giveaway '{giveaway.GiveawayCode}' for {giveaway.Price} points. Ends at {giveawayEndTimestamp}");
+                Log.Info($"Joined a giveaway for '{giveaway.GameTitle}' ({giveaway.GiveawayCode}) with {giveaway.Price} points. Ends: {giveawayEndTimestamp}");
             }
             catch (UnjoinableGiveawayException ex)
             {
-                Log.Warn($"{ex.Message}. Ends at {giveawayEndTimestamp}");
+                Log.Warn($"{ex.Message}. Ends: {giveawayEndTimestamp}");
             }
         }
 

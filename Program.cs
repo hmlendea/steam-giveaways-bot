@@ -47,6 +47,7 @@ namespace SteamGiveawaysBot
                 bot = new Bot(account);
                 bot.Stopped += bot_OnStopped;
                 bot.IsHeadless = !args.Contains("--gui");
+                bot.CrashScreenshotFilePath = config["crashScreenshotFilePath"];
                 bot.Run();
 
                 Console.ReadLine();

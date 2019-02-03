@@ -60,7 +60,7 @@ namespace SteamGiveawaysBot.Processors
             {
                 throw new ArgumentOutOfRangeException("The specified tab does not belong to this processor");
             }
-            
+
             CurrentTab = tab;
             driver.SwitchTo().Window(tab);
         }
@@ -100,7 +100,7 @@ namespace SteamGiveawaysBot.Processors
             {
                 throw new ArgumentOutOfRangeException("The specified tab does not belong to this processor");
             }
-            
+
             driver.SwitchTo().Window(tab).Close();
             Tabs.Remove(tab);
         }
@@ -119,17 +119,27 @@ namespace SteamGiveawaysBot.Processors
                 SwitchToTab(CurrentTab);
             }
 
-
             if (driver.Url == url)
             {
                 return;
             }
 
             By errorSelectorChrome = By.ClassName("error-code");
-            
+            By anythingSelector = By.XPath(@"/html/body/*");
+
             for (int attempt = 0; attempt < httpRetries; attempt++)
             {
                 driver.Navigate().GoToUrl(url);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (IsElementVisible(anythingSelector))
+                    {
+                        break;
+                    }
+
+                    driver.Navigate().GoToUrl(url);
+                }
 
                 if (!IsAnyElementVisible(errorSelectorChrome))
                 {
@@ -242,13 +252,6 @@ namespace SteamGiveawaysBot.Processors
 
             element.Clear();
             element.SendKeys(text);
-
-            if (!GetElement(selector, timeout).Text.Equals(text) &&
-                !GetElement(selector, timeout).GetAttribute("value").Equals(text))
-            {
-                element.Clear();
-                SetText(selector, text);
-            }
         }
 
         protected void AppendText(By selector, string text) => AppendText(selector, text, DefaultTimeout);
@@ -256,6 +259,13 @@ namespace SteamGiveawaysBot.Processors
         {
             IWebElement element = GetElement(selector, timeout);
             element.SendKeys(text);
+        }
+
+        protected void ClearText(By selector) => ClearText(selector, DefaultTimeout);
+        protected void ClearText(By selector, TimeSpan timeout)
+        {
+            IWebElement element = GetElement(selector, timeout);
+            element.Clear();
         }
 
         protected bool HasClass(By selector, string className) => HasClass(selector, className, DefaultTimeout);
@@ -527,17 +537,8 @@ namespace SteamGiveawaysBot.Processors
             IWebElement element = GetElement(selector, timeout);
             element.Click();
         }
-        protected void Click(By selector, bool waitToExist)
-        {
-            if (waitToExist)
-            {
-                WaitForElementToExist(selector);
-            }
 
-            Click(selector);
-        }
-
-        protected void UpdateCheckbox(By selector, bool status) => UpdateCheckbox(selector, status);
+        protected void UpdateCheckbox(By selector, bool status) => UpdateCheckbox(selector, status, DefaultTimeout);
         protected void UpdateCheckbox(By selector, bool status, TimeSpan timeout)
         {
             IWebElement element = GetElement(selector, timeout);
@@ -582,7 +583,7 @@ namespace SteamGiveawaysBot.Processors
             int option = Random.Next(0, element.Options.Count);
             element.SelectByIndex(option);
         }
-        
+
         private IWebElement GetElement(By selector, TimeSpan timeout)
         {
             SwitchToTab(CurrentTab);
@@ -594,7 +595,7 @@ namespace SteamGiveawaysBot.Processors
                 try
                 {
                     IWebElement element = driver.FindElement(selector);
-                    
+
                     if (element != null && element.Displayed)
                     {
                         return element;
@@ -609,7 +610,7 @@ namespace SteamGiveawaysBot.Processors
 
             return null;
         }
-        
+
         private SelectElement GetSelectElement(By selector, TimeSpan timeout)
         {
             IWebElement element = GetElement(selector, timeout);
@@ -617,7 +618,7 @@ namespace SteamGiveawaysBot.Processors
 
             return selectElement;
         }
-        
+
         private List<IWebElement> GetElements(By selector, TimeSpan timeout)
         {
             SwitchToTab(CurrentTab);
@@ -644,7 +645,7 @@ namespace SteamGiveawaysBot.Processors
 
             return null;
         }
- 
+
         private IAlert GetAlert(TimeSpan timeout)
         {
             SwitchToTab(CurrentTab);
