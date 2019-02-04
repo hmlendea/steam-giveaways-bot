@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="invisible.vbs"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Update="sgb.bat"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Update="sgb.sh"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
