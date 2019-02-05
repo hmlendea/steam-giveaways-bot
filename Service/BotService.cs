@@ -17,10 +17,6 @@ namespace SteamGiveawaysBot.Service
 {
     public class BotService : IBotService
     {
-        public event EventHandler Started;
-
-        public event EventHandler Stopped;
-
         public bool IsRunning { get; private set; }
 
         readonly DebugSettings debugSettings;
@@ -32,8 +28,6 @@ namespace SteamGiveawaysBot.Service
         readonly ILogger logger;
 
         readonly AccountDetails account;
-        
-        TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
         public BotService(
             DebugSettings debugSettings,
@@ -56,10 +50,8 @@ namespace SteamGiveawaysBot.Service
         public void Run()
         {
             IsRunning = true;
-            OnStarted(new EventArgs());
 
             RunLoop();
-            OnStopped(new EventArgs());
         }
 
         void RunLoop()
@@ -70,16 +62,7 @@ namespace SteamGiveawaysBot.Service
 
                 try
                 {
-                    if (!IsInternetConnected())
-                    {
-                        logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
-                        Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
-                    }
-
-                    if (IsInternetConnected())
-                    {
-                        DoStuff(driver);
-                    }
+                    DoStuff(driver);
                 }
                 catch (AccountSuspendedException)
                 {
@@ -154,24 +137,5 @@ namespace SteamGiveawaysBot.Service
 
             return driver;
         }
-
-        bool IsInternetConnected()
-        {
-            try
-            {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        void OnStarted(EventArgs e) => Started?.Invoke(this, e);
-        void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
     }
 }

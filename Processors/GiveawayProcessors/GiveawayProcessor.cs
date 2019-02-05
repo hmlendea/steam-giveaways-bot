@@ -44,10 +44,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public int CurrentRewards { get; protected set; }
 
-        public event EventHandler Started;
-
-        public event EventHandler Stopped;
-
         public DateTime NextCheckTime;
 
         public TimeSpan RechargeWaitDuration => TimeSpan.FromMinutes(30);
@@ -82,7 +78,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             CurrentPoints = MaximumPoints;
             IsRunning = true;
-            OnStarted(new EventArgs());
 
             GatherInfo();
 
@@ -97,7 +92,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
 
             RunLoop();
-            OnStopped(new EventArgs());
         }
 
         public void Stop()
@@ -105,8 +99,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Info($"Stopping {GetType().Name} bot for {account.Username}");
 
             IsRunning = false;
-
-            OnStopped(new EventArgs());
         }
 
         public abstract void LogIn();
@@ -181,8 +173,5 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 logger.Warn($"{ex.Message}. Ends: {giveawayEndTimestamp}");
             }
         }
-
-        void OnStarted(EventArgs e) => Started?.Invoke(this, e);
-        void OnStopped(EventArgs e) => Stopped?.Invoke(this, e);
     }
 }

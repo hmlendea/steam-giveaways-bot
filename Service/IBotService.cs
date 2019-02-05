@@ -6,10 +6,6 @@ namespace SteamGiveawaysBot.Service
     {
         bool IsRunning { get; }
 
-        event EventHandler Started;
-
-        event EventHandler Stopped;
-
         void Run();
     }
 }

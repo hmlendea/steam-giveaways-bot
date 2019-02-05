@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +14,7 @@ using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
@@ -26,63 +27,106 @@ namespace SteamGiveawaysBot
     {
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
-        static BotService bot;
+        static AccountDistributorSettings accountDistributorSettings;
+        static DebugSettings debugSettings;
+        static MailSettings mailSettings;
+        static SteamSettings steamSettings;
 
         static ILogger logger;
+        
+        static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
         static void Main(string[] args)
         {
             IConfiguration config = LoadConfiguration();
 
-            DebugSettings debugSettings = new DebugSettings();
-            MailSettings mailSettings = new MailSettings();
-            SteamSettings steamSettings = new SteamSettings();
+            accountDistributorSettings = new AccountDistributorSettings();
+            debugSettings = new DebugSettings();
+            mailSettings = new MailSettings();
+            steamSettings = new SteamSettings();
 
+            config.Bind(nameof(accountDistributorSettings), accountDistributorSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
             config.Bind(nameof(MailSettings), mailSettings);
             config.Bind(nameof(SteamSettings), steamSettings);
             
-            var serviceProvider = new ServiceCollection()
+            IServiceProvider serviceProvider = new ServiceCollection()
+                .AddSingleton(accountDistributorSettings)
                 .AddSingleton(debugSettings)
                 .AddSingleton(mailSettings)
                 .AddSingleton(steamSettings)
                 .AddSingleton<IMailNotifier, GmailMailNotifier>()
                 .AddSingleton<ILogger, Logger>()
+                .AddSingleton<IAccountService, AccountService>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 
             logger = serviceProvider.GetService<ILogger>();
+
             logger.Info($"Application started");
 
-            try
+            while (true)
             {
-                IBotService bot = serviceProvider.GetService<IBotService>();
-                bot.Stopped += bot_OnStopped;
-                bot.Run();
-
-                Console.ReadLine();
-            }
-            catch (Exception ex)
-            {
-                logger.Fatal($"Fatal exception: {ex.Message}");
+                try
+                {
+                    RunLoop(serviceProvider);
+                }
+                catch (Exception ex)
+                {
+                    logger.Fatal($"Fatal exception: {ex.Message}");
+                    break;
+                }
             }
 
             logger.Info($"Application stopped");
         }
 
+        static void RunLoop(IServiceProvider serviceProvider)
+        {
+            if (!IsInternetConnected())
+            {
+                logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
+            }
+
+            if (IsInternetConnected())
+            {
+                if (accountDistributorSettings.IsEnabled)
+                {
+                    IAccountService accountService = serviceProvider.GetService<IAccountService>();
+                    AccountDetails account = accountService.GatherAccount().Result; // TODO: Broken async
+
+                    steamSettings.Username = account.Username;
+                    steamSettings.Password = account.Password;
+                }
+
+                IBotService botService = serviceProvider.GetService<IBotService>();
+
+                botService.Run();
+            }
+        }
+
+        static bool IsInternetConnected()
+        {
+            try
+            {
+                using (var client = new WebClient())
+                using (client.OpenRead("http://clients3.google.com/generate_204"))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
         static IConfiguration LoadConfiguration()
         {
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
-        }
-
-        static void bot_OnStopped(object sender, EventArgs e)
-        {
-            logger.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
-            Thread.Sleep((int)RetryDelay.TotalMilliseconds);
-
-            bot.Run();
         }
     }
 }
