@@ -6,14 +6,18 @@ using System.Net;
 using System.Threading;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
+using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
+using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot
@@ -22,40 +26,48 @@ namespace SteamGiveawaysBot
     {
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
-        static Bot bot;
+        static BotService bot;
+
+        static ILogger logger;
 
         static void Main(string[] args)
         {
-            Log.Info($"Application started");
-
             IConfiguration config = LoadConfiguration();
 
-            AccountDetails account = new AccountDetails
-            {
-                Username = config["steamUsername"],
-                Password = config["steamPassword"]
-            };
+            DebugSettings debugSettings = new DebugSettings();
+            MailSettings mailSettings = new MailSettings();
+            SteamSettings steamSettings = new SteamSettings();
 
-            Log.LogFilePath = config["logFilePath"];
+            config.Bind(nameof(DebugSettings), debugSettings);
+            config.Bind(nameof(MailSettings), mailSettings);
+            config.Bind(nameof(SteamSettings), steamSettings);
+            
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(debugSettings)
+                .AddSingleton(mailSettings)
+                .AddSingleton(steamSettings)
+                .AddSingleton<IMailNotifier, GmailMailNotifier>()
+                .AddSingleton<ILogger, Logger>()
+                .AddSingleton<IBotService, BotService>()
+                .BuildServiceProvider();
 
-            MailNotifier.RecipientAddress = config["mailRecipientAddress"];
-            MailNotifier.SenderAddress = config["mailSenderAddress"];
-            MailNotifier.SenderPassword = config["mailSenderPassword"];
+            logger = serviceProvider.GetService<ILogger>();
+            logger.Info($"Application started");
 
             try
             {
-                bot = new Bot(account);
+                IBotService bot = serviceProvider.GetService<IBotService>();
                 bot.Stopped += bot_OnStopped;
-                bot.IsHeadless = !args.Contains("--gui");
-                bot.CrashScreenshotFilePath = config["crashScreenshotFilePath"];
                 bot.Run();
 
                 Console.ReadLine();
             }
             catch (Exception ex)
             {
-                Log.Fatal($"Fatal exception: {ex.Message}");
+                logger.Fatal($"Fatal exception: {ex.Message}");
             }
+
+            logger.Info($"Application stopped");
         }
 
         static IConfiguration LoadConfiguration()
@@ -67,7 +79,7 @@ namespace SteamGiveawaysBot
 
         static void bot_OnStopped(object sender, EventArgs e)
         {
-            Log.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
+            logger.Info($"Waiting {RetryDelay.TotalSeconds} seconds to retry");
             Thread.Sleep((int)RetryDelay.TotalMilliseconds);
 
             bot.Run();

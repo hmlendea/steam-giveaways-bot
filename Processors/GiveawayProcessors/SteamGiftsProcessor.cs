@@ -10,6 +10,7 @@ using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -26,11 +27,19 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string SettingsUrl => $"{HomePageUrl}/account/settings/giveaways";
 
-        public SteamGiftsProcessor(IWebDriver driver, AccountDetails account)
-            : base(driver, account)
+        IMailNotifier mailNotifier;
+
+        public SteamGiftsProcessor(
+            IWebDriver driver,
+            AccountDetails account,
+            IMailNotifier mailNotifier,
+            ILogger logger)
+            : base(driver, account, logger)
         {
             MinimumPoints = 20;
             MaximumPoints = 400;
+
+            this.mailNotifier = mailNotifier;
         }
 
         public override void Register()
@@ -73,7 +82,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override void LogIn()
         {
-            Log.Info($"Logging in {account.Username} on SteamGifts");
+            logger.Info($"Logging in {account.Username} on SteamGifts");
             GoToUrl(LogInUrl);
 
             By privacyScreenshotSelector = By.ClassName("form__screenshot");
@@ -242,7 +251,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string giveawayLink = GetHyperlink(gameTitleSelector);
                 string gameKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
-                MailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
+                mailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
                 Click(receivedRadioSelector);
             }
         }

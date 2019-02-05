@@ -11,6 +11,7 @@ using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -57,14 +58,20 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected Giveaway LastProcessedGiveaway;
 
+        protected ILogger logger;
+
         DateTime LastRewardsChekingDate { get; set; }
 
         TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
 
-        public GiveawayProcessor(IWebDriver driver, AccountDetails account)
+        public GiveawayProcessor(
+            IWebDriver driver,
+            AccountDetails account,
+            ILogger logger)
             : base(driver)
         {
             this.account = account;
+            this.logger = logger;
 
             IsRegistered = true;
         }
@@ -95,7 +102,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public void Stop()
         {
-            Log.Info($"Stopping {GetType().Name} bot for {account.Username}");
+            logger.Info($"Stopping {GetType().Name} bot for {account.Username}");
 
             IsRunning = false;
 
@@ -127,7 +134,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)
                 {
-                    Log.Info($"Processing the rewards ({CurrentRewards})");
+                    logger.Info($"Processing the rewards ({CurrentRewards})");
                     ProcessRewards();
 
                     LastRewardsChekingDate = DateTime.Now;
@@ -139,7 +146,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
                 else
                 {
-                    Log.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge the points to at least {MinimumPoints} (Currently {CurrentPoints}/{MaximumPoints})");
+                    logger.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge the points to at least {MinimumPoints} (Currently {CurrentPoints}/{MaximumPoints})");
                     
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }
@@ -154,7 +161,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (giveaway is null)
             {
-                Log.Warn($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
+                logger.Warn($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
                 NextCheckTime = DateTime.Now + DefaultWaitDuration;
                 return;
             }
@@ -167,11 +174,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             try
             {
                 JoinGiveaway(giveaway);
-                Log.Info($"Joined a giveaway for '{giveaway.GameTitle}' ({giveaway.GiveawayCode}) with {giveaway.Price} points. Ends: {giveawayEndTimestamp}");
+                logger.Info($"Joined a giveaway for '{giveaway.GameTitle}' ({giveaway.GiveawayCode}) with {giveaway.Price} points. Ends: {giveawayEndTimestamp}");
             }
             catch (UnjoinableGiveawayException ex)
             {
-                Log.Warn($"{ex.Message}. Ends: {giveawayEndTimestamp}");
+                logger.Warn($"{ex.Message}. Ends: {giveawayEndTimestamp}");
             }
         }
 

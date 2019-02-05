@@ -9,6 +9,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors
@@ -22,21 +23,26 @@ namespace SteamGiveawaysBot.Processors
         public string ChatUrl => $"{CommunityUrl}/chat/";
 
         AccountDetails account;
+        ILogger logger;
 
         string ProfileUrl => $"https://steamcommunity.com/id/{account.Username}";
         string EditProfileUrl => $"https://steamcommunity.com/id/{account.Username}/edit";
         string PrivacySettingsUrl => $"{ProfileUrl}/edit/settings";
         string BadgesUrl => $"{ProfileUrl}/badges";
 
-        public SteamProcessor(IWebDriver driver, AccountDetails account)
+        public SteamProcessor(
+            IWebDriver driver,
+            AccountDetails account,
+            ILogger logger)
             : base(driver)
         {
             this.account = account;
+            this.logger = logger;
         }
 
         public void LogIn()
         {
-            Log.Info($"Logging in {account.Username} on Steam");
+            logger.Info($"Logging in {account.Username} on Steam");
             GoToUrl(LoginUrl);
 
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");

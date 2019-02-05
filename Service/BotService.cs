@@ -5,15 +5,17 @@ using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
+using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Utils;
 
-namespace SteamGiveawaysBot
+namespace SteamGiveawaysBot.Service
 {
-    public class Bot
+    public class BotService : IBotService
     {
         public event EventHandler Started;
 
@@ -21,18 +23,34 @@ namespace SteamGiveawaysBot
 
         public bool IsRunning { get; private set; }
 
-        public bool IsHeadless { get; set; }
+        readonly DebugSettings debugSettings;
 
-        public string CrashScreenshotFilePath { get; set; }
+        readonly SteamSettings steamSettings;
 
-        AccountDetails account;
+        readonly IMailNotifier mailNotifier;
+
+        readonly ILogger logger;
+
+        readonly AccountDetails account;
+        
         TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
 
-        public Bot(AccountDetails account)
+        public BotService(
+            DebugSettings debugSettings,
+            SteamSettings steamSettings,
+            IMailNotifier mailNotifier,
+            ILogger logger)
         {
-            this.account = account;
+            this.debugSettings = debugSettings;
+            this.steamSettings = steamSettings;
+            this.mailNotifier = mailNotifier;
+            this.logger = logger;
 
-            IsHeadless = true;
+            account = new AccountDetails
+            {
+                Username = steamSettings.Username,
+                Password = steamSettings.Password
+            };
         }
 
         public void Run()
@@ -54,7 +72,7 @@ namespace SteamGiveawaysBot
                 {
                     if (!IsInternetConnected())
                     {
-                        Log.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                        logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
                         Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
                     }
 
@@ -69,25 +87,26 @@ namespace SteamGiveawaysBot
                 }
                 catch (Exception ex)
                 {
-                    if (!string.IsNullOrWhiteSpace(CrashScreenshotFilePath))
+                    if (debugSettings.IsCrashScreenshotEnabled)
                     {
                         Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
-                        crashScreenshot.SaveAsFile(Log.LogFilePath + ".png"); // TODO: Proper location
+                        crashScreenshot.SaveAsFile(debugSettings.CrashScreenshotFilePath);
                     }
                     
                     driver.Quit();
-                    Log.Error($"{ex.Message}\n{ex.StackTrace}");
+                    logger.Error($"{ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
 
         void DoStuff(IWebDriver driver)
         {
-            SteamProcessor steamProcessor = new SteamProcessor(driver, account);
+            SteamProcessor steamProcessor = new SteamProcessor(driver, account, logger);
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            SteamGiftsProcessor steamGiftsProcessor = new SteamGiftsProcessor(driver, account);
+            SteamGiftsProcessor steamGiftsProcessor =
+                new SteamGiftsProcessor(driver, account, mailNotifier, logger);
 
             try
             {
@@ -117,7 +136,7 @@ namespace SteamGiveawaysBot
 			options.AddArgument("--disable-infobars");
             options.AddArgument("--disable-extensions");
 
-            if (IsHeadless)
+            if (debugSettings.IsHeadless)
             {
                 options.AddArgument("--headless");
                 options.AddArgument("--disable-gpu");
