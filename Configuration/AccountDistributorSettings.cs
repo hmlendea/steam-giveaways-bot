@@ -8,6 +8,6 @@ namespace SteamGiveawaysBot.Configuration
 
         public string Username { get; set; }
 
-        public string Password { get; set; }
+        public string SharedSecretKey { get; set; }
     }
 }

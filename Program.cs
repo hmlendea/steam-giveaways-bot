@@ -19,6 +19,9 @@ using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Service;
+using SteamGiveawaysBot.SteamAccountDistributor;
+using SteamGiveawaysBot.SteamAccountDistributor.Models;
+using SteamGiveawaysBot.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot
@@ -55,6 +58,8 @@ namespace SteamGiveawaysBot
                 .AddSingleton(debugSettings)
                 .AddSingleton(mailSettings)
                 .AddSingleton(steamSettings)
+                .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
+                .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<IMailNotifier, GmailMailNotifier>()
                 .AddSingleton<ILogger, Logger>()
                 .AddSingleton<IAccountService, AccountService>()
@@ -93,11 +98,7 @@ namespace SteamGiveawaysBot
             {
                 if (accountDistributorSettings.IsEnabled)
                 {
-                    IAccountService accountService = serviceProvider.GetService<IAccountService>();
-                    AccountDetails account = accountService.GatherAccount().Result; // TODO: Broken async
-
-                    steamSettings.Username = account.Username;
-                    steamSettings.Password = account.Password;
+                    UpdateAccountDetails(serviceProvider);
                 }
 
                 IBotService botService = serviceProvider.GetService<IBotService>();
@@ -119,6 +120,23 @@ namespace SteamGiveawaysBot
             catch
             {
                 return false;
+            }
+        }
+
+        static void UpdateAccountDetails(IServiceProvider serviceProvider)
+        {
+            try
+            {
+                IAccountService accountService = serviceProvider.GetService<IAccountService>();
+                AccountDetails account = accountService.GatherAccount().Result; // TODO: Broken async
+
+                steamSettings.Username = account.Username;
+                steamSettings.Password = account.Password;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
+                logger.Info($"Unable to receive account details. Using default ones instead");
             }
         }
         
