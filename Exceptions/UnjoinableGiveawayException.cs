@@ -26,7 +26,7 @@ namespace SteamGiveawaysBot.Exceptions
         /// <param name="reason">The reason why the giveaway cannot be joined.</param>
         /// <param name="innerException">The inner exception.</param>
         public UnjoinableGiveawayException(string giveawayCode, string reason, Exception innerException)
-            : base($"The '{giveawayCode}' cannot be joined. Reason: '{reason}'", innerException)
+            : base($"The '{giveawayCode}' cannot be joined ({reason})", innerException)
         {
         }
     }
