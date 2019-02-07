@@ -127,11 +127,20 @@ namespace SteamGiveawaysBot
         {
             try
             {
+                string oldUsername = steamSettings.Username;
+                string oldPassword = steamSettings.Password;
+
                 IAccountService accountService = serviceProvider.GetService<IAccountService>();
                 AccountDetails account = accountService.GatherAccount().Result; // TODO: Broken async
 
                 steamSettings.Username = account.Username;
                 steamSettings.Password = account.Password;
+
+                string appsettings = File.ReadAllText(ApplicationPaths.AppSettingsFile)
+                    .Replace(oldUsername, account.Username)
+                    .Replace(oldPassword, oldPassword);
+                
+                File.WriteAllText(ApplicationPaths.AppSettingsFile, appsettings);
             }
             catch (Exception ex)
             {
