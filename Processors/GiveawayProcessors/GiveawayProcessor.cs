@@ -5,9 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
+using NuciWeb.Processors;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;

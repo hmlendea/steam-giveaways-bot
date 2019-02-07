@@ -104,10 +104,11 @@ namespace SteamGiveawaysBot.Service
                 steamGiftsProcessor.ApplyCustomSettings();
             }
             
-            steamProcessor.Close();
+            steamProcessor.Dispose();
 
             steamGiftsProcessor.Run();
             steamGiftsProcessor.Stop();
+            steamGiftsProcessor.Dispose();
         }
 
         IWebDriver SetupDriver()

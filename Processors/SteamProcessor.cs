@@ -4,9 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using NuciWeb.Processors;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
