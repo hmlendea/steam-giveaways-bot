@@ -44,10 +44,12 @@ namespace SteamGiveawaysBot.Processors
             logger.Info($"Logging in {account.Username} on Steam");
             GoToUrl(LoginUrl);
 
+            By usernameSelector = By.Id("input_username");
+            By passwordSelector = By.Id("input_password");
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");
 
-            SetText(By.Id("input_username"), account.Username);
-            SetText(By.Id("input_password"), account.Password);
+            SetText(usernameSelector, account.Username);
+            SetText(passwordSelector, account.Password);
             
             Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
             

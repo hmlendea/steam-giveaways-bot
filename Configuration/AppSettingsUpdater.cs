@@ -21,12 +21,14 @@ namespace SteamGiveawaysBot.Configuration
                 throw new ArgumentException("Invalid setting path");
             }
 
-            IEnumerable<string> nests = levels.Take(levels.Length - 1);
-            string targetProperty = levels[levels.Length - 1];
             string appSettingsJson = File.ReadAllText(ApplicationPaths.AppSettingsFile);
-
             JObject appSettings = JObject.Parse(appSettingsJson);
             JToken token = appSettings.SelectToken(settingPath);
+
+            if (token == null)
+            {
+                throw new ArgumentException("Invalid settings path");
+            }
 
             if (token.ToString() == value)
             {

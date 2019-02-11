@@ -135,16 +135,16 @@ namespace SteamGiveawaysBot
                 IAccountService accountService = serviceProvider.GetService<IAccountService>();
                 SteamAccount account = accountService.GatherAccount().Result; // TODO: Broken async
 
-                steamSettings.Username = account.Username;
-                steamSettings.Password = account.Password;
-
                 appSettingsUpdater.UpdateSetting("steamSettings.username", account.Username);
                 appSettingsUpdater.UpdateSetting("steamSettings.password", account.Password);
+
+                steamSettings.Username = account.Username;
+                steamSettings.Password = account.Password;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
-                logger.Info($"Unable to receive account details. Using default ones instead");
+                logger.Info($"Unable to update account details. Using default ones instead");
             }
         }
         
