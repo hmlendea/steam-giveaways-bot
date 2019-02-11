@@ -4,13 +4,16 @@ using System.Net.Mail;
 
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Security;
 
 namespace SteamGiveawaysBot.Utils
 {
     public sealed class GmailMailNotifier : MailNotifier
     {
-        public GmailMailNotifier(MailSettings mailSettings)
-            : base(mailSettings)
+        public GmailMailNotifier(
+            MailSettings mailSettings,
+            ICredentialsEncryptor credentialsEncryptor)
+            : base(mailSettings, credentialsEncryptor)
         {
         }
         

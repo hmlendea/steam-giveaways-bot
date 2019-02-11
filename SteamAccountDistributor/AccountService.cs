@@ -12,6 +12,7 @@ using SteamGiveawaysBot;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
+using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.SteamAccountDistributor.Security;
 
@@ -27,7 +28,7 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
 
         readonly IHmacEncoder<SteamAccountResponse> responseHmacEncoder;
 
-        readonly SteamSettings steamSettings;
+        readonly ICredentialsEncryptor credentialsEncryptor;
 
         readonly ILogger logger;
 
@@ -35,7 +36,7 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             AccountDistributorSettings accountDistributorSettings,
             IHmacEncoder<SteamAccountRequest> requestEncoder,
             IHmacEncoder<SteamAccountResponse> responseEncoder,
-            SteamSettings steamSettings,
+            ICredentialsEncryptor credentialsEncryptor,
             ILogger logger)
         {
             httpClient = new HttpClient();
@@ -43,13 +44,15 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             this.accountDistributorSettings = accountDistributorSettings;
             this.requestHmacEncoder = requestEncoder;
             this.responseHmacEncoder = responseEncoder;
-            this.steamSettings = steamSettings;
+            this.credentialsEncryptor = credentialsEncryptor;
             this.logger = logger;
         }
 
         public async Task<AccountDetails> GatherAccount()
         {
             logger.Info($"Requesting account details for SGB user '{accountDistributorSettings.Username}'");
+
+            string sharedSecretKey = credentialsEncryptor.Decrypt(accountDistributorSettings.SharedSecretKey);
 
             SteamAccountRequest request = BuildRequestObject();
 
@@ -67,13 +70,15 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             }
             
             SteamAccountResponse response = await DeserialiseResponse(httpResponse);
-            ValdiateRespone(response, accountDistributorSettings.SharedSecretKey);
+            ValdiateRespone(response, sharedSecretKey);
+
+            string passwordCypher = credentialsEncryptor.Encrypt(response.Password);
 
             // TODO: Do the mapping in a dedicated place
             AccountDetails account = new AccountDetails
             {
                 Username = response.Username,
-                Password = response.Password
+                Password = passwordCypher
             };
 
             return account;
@@ -85,9 +90,9 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             request.Username = accountDistributorSettings.Username;
             request.GiveawaysProvider = "SteamGifts";
 
-            request.HmacToken = requestHmacEncoder.GenerateToken(
-                request,
-                accountDistributorSettings.SharedSecretKey);
+            string sharedSecretKey = credentialsEncryptor.Decrypt(accountDistributorSettings.SharedSecretKey);
+
+            request.HmacToken = requestHmacEncoder.GenerateToken(request, sharedSecretKey);
 
             return request;
         }

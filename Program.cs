@@ -18,6 +18,7 @@ using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
+using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.SteamAccountDistributor;
 using SteamGiveawaysBot.SteamAccountDistributor.Models;
@@ -60,6 +61,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton(steamSettings)
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
+                .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
                 .AddSingleton<IMailNotifier, GmailMailNotifier>()
                 .AddSingleton<ILogger, Logger>()
                 .AddSingleton<IAccountService, AccountService>()
@@ -67,7 +69,6 @@ namespace SteamGiveawaysBot
                 .BuildServiceProvider();
 
             logger = serviceProvider.GetService<ILogger>();
-
             logger.Info($"Application started");
 
             while (true)

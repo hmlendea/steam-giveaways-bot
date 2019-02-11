@@ -4,6 +4,7 @@ using System.Net.Mail;
 
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Security;
 
 namespace SteamGiveawaysBot.Utils
 {
@@ -11,9 +12,14 @@ namespace SteamGiveawaysBot.Utils
     {
         readonly MailSettings mailSettings;
 
-        public MailNotifier(MailSettings mailSettings)
+        readonly ICredentialsEncryptor credentialsEncryptor;
+
+        public MailNotifier(
+            MailSettings mailSettings,
+            ICredentialsEncryptor credentialsEncryptor)
         {
             this.mailSettings = mailSettings;
+            this.credentialsEncryptor = credentialsEncryptor;
         }
 
         public void SendMail(
@@ -22,11 +28,10 @@ namespace SteamGiveawaysBot.Utils
             string giveawayLink,
             string gameKey)
         {
-            MailAddress senderAddress = new MailAddress(mailSettings.SenderAddress, "SteamGiveawaysBot");
-            NetworkCredential senderCredentials = new NetworkCredential(
-                mailSettings.SenderAddress,
-                mailSettings.SenderPassword);
+            string senderPassword = credentialsEncryptor.Decrypt(mailSettings.SenderPassword);
 
+            MailAddress senderAddress = new MailAddress(mailSettings.SenderAddress, "SteamGiveawaysBot");
+            NetworkCredential senderCredentials = new NetworkCredential(mailSettings.SenderAddress, senderPassword);
             SmtpClient client = BuildSmtpClient(senderCredentials);
 
             using (MailMessage mail = new MailMessage())

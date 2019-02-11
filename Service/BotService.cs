@@ -11,6 +11,7 @@ using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
+using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Service
@@ -23,6 +24,8 @@ namespace SteamGiveawaysBot.Service
 
         readonly SteamSettings steamSettings;
 
+        readonly ICredentialsEncryptor credentialsEncryptor;
+
         readonly IMailNotifier mailNotifier;
 
         readonly ILogger logger;
@@ -32,18 +35,20 @@ namespace SteamGiveawaysBot.Service
         public BotService(
             DebugSettings debugSettings,
             SteamSettings steamSettings,
+            ICredentialsEncryptor credentialsEncryptor,
             IMailNotifier mailNotifier,
             ILogger logger)
         {
             this.debugSettings = debugSettings;
             this.steamSettings = steamSettings;
+            this.credentialsEncryptor = credentialsEncryptor;
             this.mailNotifier = mailNotifier;
             this.logger = logger;
 
             account = new AccountDetails
             {
                 Username = steamSettings.Username,
-                Password = steamSettings.Password
+                Password = credentialsEncryptor.Decrypt(steamSettings.Password)
             };
         }
 
