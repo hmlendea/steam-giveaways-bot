@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 
 using SteamGiveawaysBot;
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.SteamAccountDistributor.Models;
@@ -48,7 +47,7 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             this.logger = logger;
         }
 
-        public async Task<AccountDetails> GatherAccount()
+        public async Task<SteamAccount> GatherAccount()
         {
             logger.Info($"Requesting account details for SGB user '{accountDistributorSettings.Username}'");
 
@@ -75,7 +74,7 @@ namespace SteamGiveawaysBot.SteamAccountDistributor
             string passwordCypher = credentialsEncryptor.Encrypt(response.Password);
 
             // TODO: Do the mapping in a dedicated place
-            AccountDetails account = new AccountDetails
+            SteamAccount account = new SteamAccount
             {
                 Username = response.Username,
                 Password = passwordCypher

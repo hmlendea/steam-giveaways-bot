@@ -13,7 +13,6 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
@@ -35,6 +34,8 @@ namespace SteamGiveawaysBot
         static DebugSettings debugSettings;
         static MailSettings mailSettings;
         static SteamSettings steamSettings;
+
+        static IAppSettingsUpdater appSettingsUpdater;
 
         static ILogger logger;
         
@@ -59,6 +60,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton(debugSettings)
                 .AddSingleton(mailSettings)
                 .AddSingleton(steamSettings)
+                .AddSingleton<IAppSettingsUpdater, AppSettingsUpdater>()
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
@@ -70,6 +72,8 @@ namespace SteamGiveawaysBot
 
             logger = serviceProvider.GetService<ILogger>();
             logger.Info($"Application started");
+
+            appSettingsUpdater = serviceProvider.GetService<IAppSettingsUpdater>();
 
             while (true)
             {
@@ -128,20 +132,14 @@ namespace SteamGiveawaysBot
         {
             try
             {
-                string oldUsername = steamSettings.Username;
-                string oldPassword = steamSettings.Password;
-
                 IAccountService accountService = serviceProvider.GetService<IAccountService>();
-                AccountDetails account = accountService.GatherAccount().Result; // TODO: Broken async
+                SteamAccount account = accountService.GatherAccount().Result; // TODO: Broken async
 
                 steamSettings.Username = account.Username;
                 steamSettings.Password = account.Password;
 
-                string appsettings = File.ReadAllText(ApplicationPaths.AppSettingsFile)
-                    .Replace(oldUsername, account.Username)
-                    .Replace(oldPassword, oldPassword);
-                
-                File.WriteAllText(ApplicationPaths.AppSettingsFile, appsettings);
+                appSettingsUpdater.UpdateSetting("steamSettings.username", account.Username);
+                appSettingsUpdater.UpdateSetting("steamSettings.password", account.Password);
             }
             catch (Exception ex)
             {

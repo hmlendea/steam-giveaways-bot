@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 
-using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.SteamAccountDistributor.Models;
 
 namespace SteamGiveawaysBot.SteamAccountDistributor
 {
     public interface IAccountService
     {
-        Task<AccountDetails> GatherAccount();
+        Task<SteamAccount> GatherAccount();
     }
 }
