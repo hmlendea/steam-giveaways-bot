@@ -250,7 +250,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string giveawayLink = GetHyperlink(gameTitleSelector);
                 string gameKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
-                mailNotifier.SendMail(account.Username, giveawayLink, gameTitle, gameKey);
+                mailNotifier.SendMail(account.Username, gameTitle, giveawayLink, gameKey);
                 Click(receivedRadioSelector);
             }
         }
