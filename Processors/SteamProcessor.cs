@@ -6,6 +6,7 @@ using System.Threading;
 
 using NuciWeb.Processors;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
@@ -28,6 +29,7 @@ namespace SteamGiveawaysBot.Processors
         string EditProfileUrl => $"https://steamcommunity.com/id/{account.Username}/edit";
         string PrivacySettingsUrl => $"{ProfileUrl}/edit/settings";
         string BadgesUrl => $"{ProfileUrl}/badges";
+        string GamesUrl => $"{ProfileUrl}/games/?tab=all";
 
         public SteamProcessor(
             IWebDriver driver,
@@ -98,6 +100,27 @@ namespace SteamGiveawaysBot.Processors
 
             Click(gameDetailsDropDownSelector);
             Click(gameDetailsPublicOptionSelector);
+        }
+
+        public IEnumerable<uint> GatherOwnedGames()
+        {
+            GoToUrl(GamesUrl);
+
+            By gameRowSelector = By.ClassName("gameListRow");
+            List<IWebElement> gameRows = GetElements(gameRowSelector);
+
+            List<uint> appIds = new List<uint>();
+
+            foreach (IWebElement element in gameRows)
+            {
+                string elementId = element.GetAttribute("id");
+                string appIdText = elementId.Substring(5);
+                uint appId = uint.Parse(appIdText);
+
+                appIds.Add(appId);
+            }
+
+            return appIds;
         }
 
         Country GetCountry()
