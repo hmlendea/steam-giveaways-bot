@@ -1,2 +1,2 @@
 @echo off
-wscript.exe "%HOMEPATH%\SGB\invisible.vbs" "%HOMEPATH%\SGB\SteamGiveawaysBot.exe"
+wscript.exe "C:\Users\%USERNAME%\SGB\invisible.vbs" "C:\Users\%USERNAME%\SGB\SteamGiveawaysBot.exe"
