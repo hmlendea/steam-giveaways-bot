@@ -6,7 +6,7 @@ using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Security;
 
-namespace SteamGiveawaysBot.Utils
+namespace SteamGiveawaysBot.Communication.Notifications
 {
     public sealed class GmailMailNotifier : MailNotifier
     {

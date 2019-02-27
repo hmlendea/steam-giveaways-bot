@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using SteamGiveawaysBot;
+using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
+using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Security;
-using SteamGiveawaysBot.SteamAccountDistributor.Models;
-using SteamGiveawaysBot.SteamAccountDistributor.Security;
 
-namespace SteamGiveawaysBot.SteamAccountDistributor
+namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
 {
     public sealed class AccountService : IAccountService
     {

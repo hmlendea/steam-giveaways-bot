@@ -4,9 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-using NuciWeb.Processors;
+using NuciWeb;
 using OpenQA.Selenium;
 
+using SteamGiveawaysBot.Communication.Notifications;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
@@ -69,7 +70,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             SetText(usernameTextBoxSelector, account.Username);
             SetText(emailTextBoxSelector, account.EmailAddress);
-            SelectByValue(countryDropDownSelector, account.Country.SgCode.ToString());
+            SelectOptionByValue(countryDropDownSelector, account.Country.SgCode.ToString());
             
             Click(noEmailsRadioButton1Selector);
             Click(noEmailsRadioButton2Selector);
@@ -160,7 +161,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string giveawayLink = GetHyperlink(giveawayTitleSelector);
                 string endTimeSelector = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
                 string gameTitle = GetText(giveawayTitleSelector);
-                string priceString = GetElements(giveawayPriceSelector).Last().Text;
+                string priceString = GetTextOfMany(giveawayPriceSelector).Last();
                 string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
 
                 int price = int.Parse(priceSubstring);

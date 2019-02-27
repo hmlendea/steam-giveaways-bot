@@ -5,6 +5,7 @@ using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
+using SteamGiveawaysBot.Communication.Notifications;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
@@ -12,7 +13,6 @@ using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
-using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Service
 {

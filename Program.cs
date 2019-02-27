@@ -12,6 +12,10 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
+using SteamGiveawaysBot.Communication.Notifications;
+using SteamGiveawaysBot.Communication.SteamAccountDistributor;
+using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
+using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
@@ -19,10 +23,6 @@ using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service;
-using SteamGiveawaysBot.SteamAccountDistributor;
-using SteamGiveawaysBot.SteamAccountDistributor.Models;
-using SteamGiveawaysBot.SteamAccountDistributor.Security;
-using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot
 {

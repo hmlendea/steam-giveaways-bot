@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-using NuciWeb.Processors;
+using NuciWeb;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 
@@ -107,14 +107,13 @@ namespace SteamGiveawaysBot.Processors
             GoToUrl(GamesUrl);
 
             By gameRowSelector = By.ClassName("gameListRow");
-            List<IWebElement> gameRows = GetElements(gameRowSelector);
-
+            
+            IEnumerable<string> gameRowsIds = GetIdOfMany(gameRowSelector);
             List<uint> appIds = new List<uint>();
 
-            foreach (IWebElement element in gameRows)
+            foreach (string gameRowId in gameRowsIds)
             {
-                string elementId = element.GetAttribute("id");
-                string appIdText = elementId.Substring(5);
+                string appIdText = gameRowId.Substring(5);
                 uint appId = uint.Parse(appIdText);
 
                 appIds.Add(appId);

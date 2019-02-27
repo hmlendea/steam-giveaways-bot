@@ -4,7 +4,7 @@ using System.Net.Mail;
 
 using SteamGiveawaysBot.Entities;
 
-namespace SteamGiveawaysBot.Utils
+namespace SteamGiveawaysBot.Communication.Notifications
 {
     public interface IMailNotifier
     {
