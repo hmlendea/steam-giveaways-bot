@@ -39,7 +39,7 @@ namespace SteamGiveawaysBot
 
         static ILogger logger;
         
-        static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(15);
+        static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(5);
 
         static void Main(string[] args)
         {
@@ -93,38 +93,39 @@ namespace SteamGiveawaysBot
 
         static void RunLoop(IServiceProvider serviceProvider)
         {
-            if (!IsInternetConnected())
+            WaitForInternet();
+
+            if (accountDistributorSettings.IsEnabled)
             {
-                logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
-                Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
+                UpdateAccountDetails(serviceProvider);
             }
 
-            if (IsInternetConnected())
-            {
-                if (accountDistributorSettings.IsEnabled)
-                {
-                    UpdateAccountDetails(serviceProvider);
-                }
+            IBotService botService = serviceProvider.GetService<IBotService>();
 
-                IBotService botService = serviceProvider.GetService<IBotService>();
-
-                botService.Run();
-            }
+            botService.Run();
         }
 
-        static bool IsInternetConnected()
+        static void WaitForInternet()
         {
-            try
+            bool isConnected = false;
+
+            while (!isConnected)
             {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
+                try
                 {
-                    return true;
+                    using (var client = new WebClient())
+                    using (client.OpenRead("http://clients3.google.com/generate_204"))
+                    {
+                        isConnected = true;
+                    }
                 }
-            }
-            catch
-            {
-                return false;
+                catch
+                {
+                    isConnected = false;
+                }
+
+                logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
             }
         }
 
