@@ -154,9 +154,22 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             for (int i = 1; i <= 50; i++)
             {
-                By giveawayTitleSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
-                By giveawayEndTimeSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/div[1]/div[1]/span");
-                By giveawayPriceSelector = By.XPath($"//div[@class='widget-container']/div[2]/div[3]/div[{i}]/div/div/h2/span");
+                string baseXpath = "//div[@class='page__inner-wrap']/div[@class='widget-container']/div[2]";
+                int baseXpathFindingsCount = GetElements(By.XPath($"{baseXpath}/div")).Count;
+
+                // TODO: A more proper fix
+                if (baseXpathFindingsCount == 7)
+                {
+                    baseXpath += "/div[2]";
+                }
+                else
+                {
+                    baseXpath += "/div[3]";
+                }
+
+                By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
+                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div[1]/span");
+                By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span");
 
                 string giveawayLink = GetHyperlink(giveawayTitleSelector);
                 string endTimeSelector = GetAttribute(giveawayEndTimeSelector, "data-timestamp");
