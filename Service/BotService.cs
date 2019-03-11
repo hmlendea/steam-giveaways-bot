@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
@@ -93,6 +95,9 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
+            IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
+            PlayGames(ownedAppIds);
+
             SteamGiftsProcessor steamGiftsProcessor =
                 new SteamGiftsProcessor(driver, account, mailNotifier, logger);
 
@@ -114,6 +119,19 @@ namespace SteamGiveawaysBot.Service
             steamGiftsProcessor.Run();
             steamGiftsProcessor.Stop();
             steamGiftsProcessor.Dispose();
+        }
+
+        void PlayGames(IEnumerable<uint> appIds)
+        {
+            int gamesCount = appIds.Count();
+            logger.Info($"Playing {gamesCount} games on Steam for {account.Username}");
+
+            using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(account))
+            {
+                steamClientProcessor.LogIn();
+                steamClientProcessor.PlayGames(appIds, TimeSpan.FromSeconds(5));
+                steamClientProcessor.LogOut();
+            }
         }
 
         IWebDriver SetupDriver()
