@@ -7,6 +7,8 @@ using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 
+using NuciExtensions;
+
 using SteamKit2;
 using SteamKit2.Internal;
 
@@ -82,14 +84,19 @@ namespace SteamGiveawaysBot.Processors
         {
             WaitUntilLoggedIn();
 
+            IList<uint> randomisedAppIds = gameIds
+                .Where(gameID => gameID != 0)
+                .ToList()
+                .Shuffle();
+
             ClientMsgProtobuf<CMsgClientGamesPlayed> request =
                 new ClientMsgProtobuf<CMsgClientGamesPlayed>(EMsg.ClientGamesPlayed);
 
-            foreach (uint gameID in gameIds.Where(gameID => gameID != 0))
+            foreach (uint appId in randomisedAppIds)
             {
                 CMsgClientGamesPlayed.GamePlayed gamePlayed = new CMsgClientGamesPlayed.GamePlayed
                 {
-                    game_id = new GameID(gameID)
+                    game_id = new GameID(appId)
                 };
 
 				request.Body.games_played.Add(gamePlayed);
