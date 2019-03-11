@@ -117,6 +117,7 @@ namespace SteamGiveawaysBot
                     using (client.OpenRead("http://clients3.google.com/generate_204"))
                     {
                         isConnected = true;
+                        return;
                     }
                 }
                 catch
