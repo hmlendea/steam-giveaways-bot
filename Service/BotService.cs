@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 
+using NuciExtensions;
+
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
@@ -124,12 +126,16 @@ namespace SteamGiveawaysBot.Service
         void PlayGames(IEnumerable<uint> appIds)
         {
             int gamesCount = appIds.Count();
-            logger.Info($"Playing {gamesCount} games on Steam for {account.Username}");
+            int gamesToPlayCount = (int)((float)gamesCount * 0.66f);
+
+            logger.Info($"Playing {gamesToPlayCount}/{gamesCount} games on Steam for {account.Username}");
+
+            List<uint> appIdsToPlay = appIds.ToList().Shuffle().Take(gamesToPlayCount).ToList();
 
             using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(account))
             {
                 steamClientProcessor.LogIn();
-                steamClientProcessor.PlayGames(appIds, TimeSpan.FromSeconds(5));
+                steamClientProcessor.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
                 steamClientProcessor.LogOut();
             }
         }
