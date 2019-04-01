@@ -65,8 +65,8 @@ namespace SteamGiveawaysBot.Processors
             By avatarSelector = By.ClassName("currentUserAvatar");
             WaitForElementToExist(avatarSelector);
         }
-
-        public void GatherProfileInfo()
+        
+        public void GatherProfileInformation()
         {
             GoToUrl(AccountUrl);
 
@@ -77,18 +77,12 @@ namespace SteamGiveawaysBot.Processors
             account.EmailAddress = GetText(emailAddressSelector);
 
             GoToUrl(account.SteamProfileUrl);
+
+            string name = GetText(realNameSelector);;
             
             account.DisplayName = GetText(displayNameSelector);
-            account.FirstName = GetText(realNameSelector);
+            account.PersonalName = new PersonalName(name);
             account.Country = GetCountry();
-
-            if (account.FirstName.Contains(' '))
-            {
-                string[] splitName = account.FirstName.Split(' ');
-                
-                account.FirstName = splitName[0];
-                account.LastName = splitName[1];
-            }
         }
 
         public void UpdatePrivacySettings()

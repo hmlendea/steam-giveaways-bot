@@ -107,7 +107,7 @@ namespace SteamGiveawaysBot.Service
             }
             catch (AccountNotRegisteredException)
             {
-                steamProcessor.GatherProfileInfo();
+                steamProcessor.GatherProfileInformation();
                 steamProcessor.UpdatePrivacySettings();
                 
                 steamGiftsProcessor.Register();

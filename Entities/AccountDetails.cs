@@ -33,13 +33,11 @@ namespace SteamGiveawaysBot.Entities
 
         public Country Country { get; set; }
 
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
-
-        public string FullName => $"{FirstName} {LastName}";
+        public PersonalName PersonalName { get; set; }
 
         public string SteamProfileUrl => $"https://steamcommunity.com/id/{Username}";
+
+        public string SteamGiftsProfileUrl => $"https://www.steamgifts.com/user/{Username}";
 
         public decimal SteamGiftsValue { get; set; }
 
@@ -49,12 +47,9 @@ namespace SteamGiveawaysBot.Entities
 
         public DateTime Birthday { get; set; }
 
-        public override string ToString()
+        public AccountDetails()
         {
-            return
-                $"{Username}:{Password} ({EmailAddress}). " +
-                $"{FirstName} {LastName} from {Country}. " +
-                $"Born: {Birthday.ToString("yyyy/MM/dd")}.";
+            PersonalName = new PersonalName();
         }
     }
 }
