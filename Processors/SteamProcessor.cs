@@ -4,12 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using NuciLog.Core;
 using NuciWeb;
+
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors

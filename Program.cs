@@ -8,6 +8,9 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using NuciLog;
+using NuciLog.Core;
+
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -18,7 +21,6 @@ using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Exceptions;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
@@ -54,7 +56,7 @@ namespace SteamGiveawaysBot
             config.Bind(nameof(DebugSettings), debugSettings);
             config.Bind(nameof(MailSettings), mailSettings);
             config.Bind(nameof(SteamSettings), steamSettings);
-            
+
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(accountDistributorSettings)
                 .AddSingleton(debugSettings)
@@ -65,12 +67,13 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
                 .AddSingleton<IMailNotifier, GmailMailNotifier>()
-                .AddSingleton<ILogger, Logger>()
+                .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IAccountService, AccountService>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 
             logger = serviceProvider.GetService<ILogger>();
+            logger.SetSourceContext<Program>();
             logger.Info($"Application started");
 
             appSettingsUpdater = serviceProvider.GetService<IAppSettingsUpdater>();

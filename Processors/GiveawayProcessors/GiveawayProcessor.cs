@@ -5,12 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
+using NuciLog.Core;
 using NuciWeb;
+
 using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -152,7 +153,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (giveaway is null)
             {
-                logger.Warn($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
+                logger.Warning($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
                 NextCheckTime = DateTime.Now + DefaultWaitDuration;
                 return;
             }
@@ -169,7 +170,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
             catch (UnjoinableGiveawayException ex)
             {
-                logger.Warn($"{ex.Message}. Ends: {giveawayEndTimestamp}");
+                logger.Warning($"{ex.Message}. Ends: {giveawayEndTimestamp}");
             }
         }
     }

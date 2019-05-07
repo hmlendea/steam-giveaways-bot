@@ -7,12 +7,12 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+using NuciLog.Core;
 
 using SteamGiveawaysBot;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Security;
 
 namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
