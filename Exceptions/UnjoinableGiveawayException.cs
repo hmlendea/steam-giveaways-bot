@@ -9,6 +9,8 @@ namespace SteamGiveawaysBot.Exceptions
     /// </summary>
     public class UnjoinableGiveawayException : Exception
     {
+        public string Reason { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UnjoinableGiveawayException"/> class.
         /// </summary>
@@ -17,6 +19,7 @@ namespace SteamGiveawaysBot.Exceptions
         public UnjoinableGiveawayException(Giveaway giveaway, string reason)
             : base($"The giveaway for '{giveaway.GameTitle}' ('{giveaway.GiveawayCode}') cannot be joined. Reason: '{reason}'")
         {
+            Reason = reason;
         }
 
         /// <summary>
@@ -28,6 +31,7 @@ namespace SteamGiveawaysBot.Exceptions
         public UnjoinableGiveawayException(string giveawayCode, string reason, Exception innerException)
             : base($"The '{giveawayCode}' cannot be joined ({reason})", innerException)
         {
+            Reason = reason;
         }
     }
 }

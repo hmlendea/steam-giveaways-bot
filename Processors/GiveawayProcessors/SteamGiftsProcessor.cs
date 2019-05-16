@@ -12,6 +12,7 @@ using OpenQA.Selenium;
 using SteamGiveawaysBot.Communication.Notifications;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -83,7 +84,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override void LogIn()
         {
-            logger.Info($"Logging in {account.Username} on SteamGifts");
+            logger.Info(
+                MyOperation.SteamGiftsLogIn,
+                OperationStatus.Started,
+                new LogInfo(MyLogInfoKey.Username,  account.Username));
+
             GoToUrl(LogInUrl);
 
             By privacyScreenshotSelector = By.ClassName("form__screenshot");
@@ -108,6 +113,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
 
             IsLoggedIn = true;
+
+            logger.Debug(MyOperation.SteamGiftsLogIn, OperationStatus.Success);
         }
 
         public void ApplyCustomSettings()

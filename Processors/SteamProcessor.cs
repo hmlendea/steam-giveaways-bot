@@ -11,6 +11,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Entities;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors
@@ -44,7 +45,11 @@ namespace SteamGiveawaysBot.Processors
 
         public void LogIn()
         {
-            logger.Info($"Logging in {account.Username} on Steam");
+            logger.Info(
+                MyOperation.SteamLogIn,
+                OperationStatus.Started,
+                new LogInfo(MyLogInfoKey.Username, account.Username));
+
             GoToUrl(LoginUrl);
 
             By usernameSelector = By.Id("input_username");
@@ -57,6 +62,10 @@ namespace SteamGiveawaysBot.Processors
             Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
             
             WaitForElementToExist(avatarSelector);
+
+            logger.Debug(
+                MyOperation.SteamGiftsLogIn,
+                OperationStatus.Success);
         }
 
         public void VisitChat()

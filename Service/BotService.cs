@@ -14,6 +14,7 @@ using SteamGiveawaysBot.Communication.Notifications;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
@@ -86,7 +87,8 @@ namespace SteamGiveawaysBot.Service
                     }
                     
                     driver.Quit();
-                    logger.Error($"{ex.Message}\n{ex.StackTrace}");
+
+                    logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
                 }
             }
         }
@@ -128,8 +130,13 @@ namespace SteamGiveawaysBot.Service
             int gamesCount = appIds.Count();
             int gamesToPlayCount = (int)((float)gamesCount * 0.66f);
 
-            logger.Info($"Playing {gamesToPlayCount}/{gamesCount} games on Steam for {account.Username}");
-
+            logger.Info(
+                MyOperation.PlayTimeFaking,
+                OperationStatus.Started,
+                new LogInfo(MyLogInfoKey.Username, account.Username),
+                new LogInfo(MyLogInfoKey.OwnedGamesCount, gamesCount),
+                new LogInfo(MyLogInfoKey.GamesCount, gamesToPlayCount));
+                
             List<uint> appIdsToPlay = appIds.ToList().Shuffle().Take(gamesToPlayCount).ToList();
 
             using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(account))
@@ -138,6 +145,8 @@ namespace SteamGiveawaysBot.Service
                 steamClientProcessor.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
                 steamClientProcessor.LogOut();
             }
+
+            logger.Debug(MyOperation.PlayTimeFaking, OperationStatus.Success);
         }
 
         IWebDriver SetupDriver()

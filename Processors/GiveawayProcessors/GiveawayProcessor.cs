@@ -12,6 +12,7 @@ using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -96,7 +97,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public void Stop()
         {
-            logger.Info($"Stopping {GetType().Name} bot for {account.Username}");
+            logger.Info(
+                MyOperation.BotStop,
+                new LogInfo(MyLogInfoKey.GiveawayProcessor, GetType().Name),
+                new LogInfo(MyLogInfoKey.Username, account.Username));
 
             IsRunning = false;
         }
@@ -126,10 +130,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)
                 {
-                    logger.Info($"Processing the rewards ({CurrentRewards})");
+                    logger.Info(
+                        MyOperation.RewardsProcessing,
+                        OperationStatus.Started,
+                        new LogInfo(MyLogInfoKey.RewardsCount, CurrentRewards));
+
                     ProcessRewards();
 
                     LastRewardsChekingDate = DateTime.Now;
+
+                    logger.Debug(MyOperation.RewardsProcessing, OperationStatus.Success);
                 }
 
                 if (CurrentPoints >= MinimumPoints)
@@ -138,7 +148,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
                 else
                 {
-                    logger.Info($"Waiting {RechargeWaitDuration.TotalMinutes} minutes to recharge the points to at least {MinimumPoints} (Currently {CurrentPoints}/{MaximumPoints})");
+                    logger.Info(
+                        MyOperation.RechargePoints,
+                        new LogInfo(MyLogInfoKey.RechargeDuration, RechargeWaitDuration.TotalMilliseconds),
+                        new LogInfo(MyLogInfoKey.MinimumPoints, MinimumPoints),
+                        new LogInfo(MyLogInfoKey.CurrentPoints, CurrentPoints));
                     
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }
@@ -153,7 +167,12 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             if (giveaway is null)
             {
-                logger.Warning($"Cannot find any giveaway to join. Waiting {DefaultWaitDuration.TotalMinutes} minuts");
+                logger.Warn(
+                    MyOperation.JoinGiveaway,
+                    OperationStatus.Failure,
+                    new LogInfo(MyLogInfoKey.Reason, "Cannot find any giveaway to join"),
+                    new LogInfo(MyLogInfoKey.RetryDelay, DefaultWaitDuration.TotalMilliseconds));
+
                 NextCheckTime = DateTime.Now + DefaultWaitDuration;
                 return;
             }
@@ -166,11 +185,22 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             try
             {
                 JoinGiveaway(giveaway);
-                logger.Info($"Joined a giveaway for '{giveaway.GameTitle}' ({giveaway.GiveawayCode}) with {giveaway.Price} points. Ends: {giveawayEndTimestamp}");
+                
+                logger.Info(
+                    MyOperation.JoinGiveaway,
+                    OperationStatus.Success,
+                    new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle),
+                    new LogInfo(MyLogInfoKey.GiveawayCode, giveaway.GiveawayCode),
+                    new LogInfo(MyLogInfoKey.Price, giveaway.Price),
+                    new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
             }
             catch (UnjoinableGiveawayException ex)
             {
-                logger.Warning($"{ex.Message}. Ends: {giveawayEndTimestamp}");
+                logger.Warn(
+                    MyOperation.JoinGiveaway,
+                    OperationStatus.Failure,
+                    new LogInfo(MyLogInfoKey.Reason, ex.Reason),
+                    new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
             }
         }
     }

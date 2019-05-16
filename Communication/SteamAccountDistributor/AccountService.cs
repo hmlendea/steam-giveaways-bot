@@ -13,6 +13,7 @@ using SteamGiveawaysBot;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Security;
 
 namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
@@ -49,7 +50,10 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
 
         public async Task<SteamAccount> GatherAccount()
         {
-            logger.Info($"Requesting account details for SGB user '{accountDistributorSettings.Username}'");
+            logger.Info(
+                MyOperation.AccountDetailsRetrieval,
+                OperationStatus.Started,
+                new LogInfo(MyLogInfoKey.SgbUser, accountDistributorSettings.Username));
 
             string sharedSecretKey = credentialsEncryptor.Decrypt(accountDistributorSettings.SharedSecretKey);
 
@@ -79,6 +83,8 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
                 Username = response.Username,
                 Password = passwordCypher
             };
+
+            logger.Debug(MyOperation.AccountDetailsRetrieval, OperationStatus.Success);
 
             return account;
         }

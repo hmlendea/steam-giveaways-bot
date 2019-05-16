@@ -21,6 +21,7 @@ using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Exceptions;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
@@ -74,7 +75,7 @@ namespace SteamGiveawaysBot
 
             logger = serviceProvider.GetService<ILogger>();
             logger.SetSourceContext<Program>();
-            logger.Info($"Application started");
+            logger.Info(Operation.StartUp, $"Application started");
 
             appSettingsUpdater = serviceProvider.GetService<IAppSettingsUpdater>();
 
@@ -86,12 +87,12 @@ namespace SteamGiveawaysBot
                 }
                 catch (Exception ex)
                 {
-                    logger.Fatal($"Fatal exception: {ex.Message}");
+                    logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
                     break;
                 }
             }
 
-            logger.Info($"Application stopped");
+            logger.Info(Operation.ShutDown, $"Application stopped");
         }
 
         static void RunLoop(IServiceProvider serviceProvider)
@@ -128,7 +129,11 @@ namespace SteamGiveawaysBot
                     isConnected = false;
                 }
 
-                logger.Error($"No internet connection. Waiting {ConnectionWaitTime.TotalMinutes} minutes before retrying");
+                logger.Error(
+                    MyOperation.ConnectivityTest,
+                    OperationStatus.Failure,
+                    new LogInfo(MyLogInfoKey.RetryDelay, ConnectionWaitTime.TotalMilliseconds));
+
                 Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
             }
         }
@@ -145,11 +150,20 @@ namespace SteamGiveawaysBot
 
                 steamSettings.Username = account.Username;
                 steamSettings.Password = account.Password;
+
+                logger.Info(
+                    MyOperation.ConfigurationUpdate,
+                    OperationStatus.Success,
+                    $"Account details updated successfully");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
-                logger.Info($"Unable to update account details. Using default ones instead");
+
+                logger.Warn(
+                    MyOperation.ConfigurationUpdate,
+                    OperationStatus.Failure,
+                    $"Unable to update the account details. Using the default ones instead");
             }
         }
         
