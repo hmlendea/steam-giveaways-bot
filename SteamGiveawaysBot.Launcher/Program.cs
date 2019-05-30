@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime;
 
 namespace SteamGiveawaysBot.Launcher
@@ -15,14 +14,26 @@ namespace SteamGiveawaysBot.Launcher
 
         static void Main(string[] args)
         {
+            CheckForUpdates();
+            LaunchApplication();
+        }
+
+        static void LaunchApplication()
+        {
             string appExePath = GetApplicationExecutablePath();
+
+            if (string.IsNullOrWhiteSpace(appExePath))
+            {
+                return;
+            }
+
             Process process = new Process();
             process.StartInfo.CreateNoWindow = true;
 
             if (appExePath.EndsWith(".dll"))
             {
                 process.StartInfo.FileName = "dotnet";
-                process.StartInfo.Arguments = appExePath;
+                process.StartInfo.Arguments = $"\"{appExePath}\"";
             }
             else
             {
@@ -34,12 +45,9 @@ namespace SteamGiveawaysBot.Launcher
 
         static string GetApplicationExecutablePath()
         {
-            string appDirPath = GetApplicationDirectoryPath();
-            string appExePath = string.Empty;
-
             foreach (string fileNameCandidate in fileNameCandidates)
             {
-                string filePath = Path.Combine(appDirPath, fileNameCandidate);
+                string filePath = Path.Combine(ApplicationInfo.SteamGiveawaysBotDirectory, fileNameCandidate);
 
                 if (File.Exists(filePath))
                 {
@@ -50,10 +58,22 @@ namespace SteamGiveawaysBot.Launcher
             return null;
         }
 
-        static string GetApplicationDirectoryPath()
+        static void CheckForUpdates()
         {
-            Assembly thisAssembly = Assembly.GetExecutingAssembly();
-            return Path.GetDirectoryName(thisAssembly.Location);
+            try
+            {
+                string latestVersion = ApplicationUpdater.GetLatestVersionString();
+
+                if (!Directory.Exists(ApplicationInfo.SteamGiveawaysBotDirectory) ||
+                    string.Compare(latestVersion, ApplicationInfo.SteamGiveawaysBotVersion) > 0)
+                {
+                    ApplicationUpdater.UpdateApplication(latestVersion);
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Error checking for updates");
+            }
         }
     }
 }
