@@ -31,16 +31,41 @@ namespace SteamGiveawaysBot.Launcher
 
         public static string SteamGiveawaysBotVersion
         {
-            get => GetFileContent(VersionFileName);
-            set => File.WriteAllText(VersionFileName, value);
+            get => GetFileValue(VersionFileName);
+            set => WriteFileContent(VersionFileName, value);
         }
 
-        public static string Platform => GetFileContent(PlatformFileName, "win-x64");
+        public static string Platform => GetFileValue(PlatformFileName, "win-x64");
+
+        static string GetFileValue(string fileName)
+            => GetFileValue(fileName, null);
+
+        static string GetFileValue(string fileName, string defaultValue)
+        {
+            string fileContent = GetFileContent(fileName);
+            string firstValue = string.Empty;
+
+            foreach (char c in fileContent ?? string.Empty)
+            {
+                if (char.IsWhiteSpace(c) ||
+                    c == '\r' ||
+                    c == '\n')
+                {
+                    break;
+                }
+
+                firstValue += c;
+            }
+
+            if (string.IsNullOrWhiteSpace(firstValue))
+            {
+                return defaultValue;
+            }
+
+            return firstValue;
+        }
 
         static string GetFileContent(string fileName)
-            => GetFileContent(fileName, null);
-
-        static string GetFileContent(string fileName, string defaultValue)
         {
             string filePath = Path.Combine(ApplicationDirectory, fileName);
 
@@ -49,7 +74,13 @@ namespace SteamGiveawaysBot.Launcher
                 return File.ReadAllText(filePath);
             }
 
-            return defaultValue;
+            return null;
+        }
+
+        static void WriteFileContent(string fileName, string fileContent)
+        {
+            string filePath = Path.Combine(ApplicationDirectory, fileName);
+            File.WriteAllText(filePath, fileContent);
         }
     }
 }

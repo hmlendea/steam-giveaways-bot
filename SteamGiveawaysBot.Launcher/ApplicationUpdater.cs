@@ -7,7 +7,8 @@ namespace SteamGiveawaysBot.Launcher
 {
     public static class ApplicationUpdater
     {
-        const string LatestVersionArchiveUrlFormat = "http://hori.go.ro/sgb/sgb_{0}_{1}.zip";
+        const string LatestVersionFileNameFormat = "sgb_{0}_{1}.zip";
+        const string LatestVersionArchiveUrlFormat = "http://hori.go.ro/sgb/{0}";
         const string LatestVersionStringUrl = "http://hori.go.ro/sgb/version";
 
         public static void CheckForUpdates()
@@ -34,7 +35,11 @@ namespace SteamGiveawaysBot.Launcher
         {
             using (WebClient client = new WebClient())
             {
-                return client.DownloadString(LatestVersionStringUrl);
+                return client
+                    .DownloadString(LatestVersionStringUrl)
+                    .Replace(" ", "")
+                    .Replace("\r", "")
+                    .Replace("\n", "");;
             }
         }
 
@@ -59,11 +64,10 @@ namespace SteamGiveawaysBot.Launcher
 
         public static void DownloadSgb(string filePath, string version, string platform)
         {
-            string url = string
-                .Format(LatestVersionArchiveUrlFormat, version, platform)
-                .Replace(" ", "")
-                .Replace("\r", "")
-                .Replace("\n", "");
+            string archiveName = string.Format(LatestVersionFileNameFormat, version, platform);
+            string url = string.Format(LatestVersionArchiveUrlFormat, archiveName);
+            
+            Console.WriteLine($"Downloading \"{archiveName}\"");
 
             using (WebClient client = new WebClient())
             {
