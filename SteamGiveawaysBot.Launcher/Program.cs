@@ -16,18 +16,21 @@ namespace SteamGiveawaysBot.Launcher
         {
             ApplicationUpdater.CheckForUpdates();
             ApplicationConfigurator.ApplyTextReplacements();
-            LaunchApplication();
-        }
 
-        static void LaunchApplication()
-        {
             string appExePath = GetApplicationExecutablePath();
 
             if (string.IsNullOrWhiteSpace(appExePath))
             {
+                Console.WriteLine("Executable not found");
                 return;
             }
 
+            EnsureExecutionPermissions(appExePath);
+            LaunchApplication(appExePath);
+        }
+
+        static void LaunchApplication(string appExePath)
+        {
             Process process = new Process();
             process.StartInfo.CreateNoWindow = true;
 
@@ -57,6 +60,24 @@ namespace SteamGiveawaysBot.Launcher
             }
 
             return null;
+        }
+
+        static void EnsureExecutionPermissions(string exePath)
+        {
+            if (ApplicationInfo.Platform.Contains("linux"))
+            {
+                EnsureExecutionPermissionsOnLinux(exePath);
+            }
+        }
+
+        static void EnsureExecutionPermissionsOnLinux(string exePath)
+        {
+            Process chmod = new Process();
+            chmod.StartInfo.FileName = "chmod";
+            chmod.StartInfo.Arguments = $"+x \"{exePath}\"";
+            chmod.StartInfo.CreateNoWindow = true;
+
+            chmod.Start();
         }
     }
 }
