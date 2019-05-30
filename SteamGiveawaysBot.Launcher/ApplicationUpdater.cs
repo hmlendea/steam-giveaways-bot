@@ -44,9 +44,6 @@ namespace SteamGiveawaysBot.Launcher
                 .Replace("\r", "")
                 .Replace("\n", "");
 
-            System.Console.WriteLine(url);
-            System.Console.ReadKey();
-
             using (WebClient client = new WebClient())
             {
                 client.DownloadFile(url, filePath);
