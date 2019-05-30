@@ -31,20 +31,22 @@ namespace SteamGiveawaysBot.Launcher
 
         static void LaunchApplication(string appExePath)
         {
-            Process process = new Process();
-            process.StartInfo.CreateNoWindow = true;
+            Process app = new Process();
+            app.StartInfo.WorkingDirectory = ApplicationInfo.ApplicationDirectory;
+            app.StartInfo.CreateNoWindow = true;
 
             if (appExePath.EndsWith(".dll"))
             {
-                process.StartInfo.FileName = "dotnet";
-                process.StartInfo.Arguments = $"\"{appExePath}\"";
+                app.StartInfo.FileName = "dotnet";
+                app.StartInfo.Arguments = $"\"{appExePath}\"";
             }
             else
             {
-                process.StartInfo.FileName = appExePath;
+                app.StartInfo.FileName = appExePath;
             }
 
-            process.Start();
+            app.Start();
+            app.WaitForExit();
         }
 
         static string GetApplicationExecutablePath()
@@ -78,6 +80,7 @@ namespace SteamGiveawaysBot.Launcher
             chmod.StartInfo.CreateNoWindow = true;
 
             chmod.Start();
+            chmod.WaitForExit();
         }
     }
 }
