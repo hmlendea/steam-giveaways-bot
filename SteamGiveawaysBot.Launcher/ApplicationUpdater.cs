@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -8,6 +9,26 @@ namespace SteamGiveawaysBot.Launcher
     {
         const string LatestVersionArchiveUrlFormat = "http://hori.go.ro/sgb/sgb_{0}_{1}.zip";
         const string LatestVersionStringUrl = "http://hori.go.ro/sgb/version";
+
+        public static void CheckForUpdates()
+        {
+            Console.WriteLine("Checking for updates");
+
+            try
+            {
+                string latestVersion = ApplicationUpdater.GetLatestVersionString();
+
+                if (!Directory.Exists(ApplicationInfo.SteamGiveawaysBotDirectory) ||
+                    string.Compare(latestVersion, ApplicationInfo.SteamGiveawaysBotVersion) > 0)
+                {
+                    ApplicationUpdater.UpdateApplication(latestVersion);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking for updates: {ex.Message}");
+            }
+        }
 
         public static string GetLatestVersionString()
         {

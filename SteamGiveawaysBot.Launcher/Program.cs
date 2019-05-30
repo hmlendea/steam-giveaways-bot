@@ -14,7 +14,8 @@ namespace SteamGiveawaysBot.Launcher
 
         static void Main(string[] args)
         {
-            CheckForUpdates();
+            ApplicationUpdater.CheckForUpdates();
+            ApplicationConfigurator.ApplyTextReplacements();
             LaunchApplication();
         }
 
@@ -56,24 +57,6 @@ namespace SteamGiveawaysBot.Launcher
             }
 
             return null;
-        }
-
-        static void CheckForUpdates()
-        {
-            try
-            {
-                string latestVersion = ApplicationUpdater.GetLatestVersionString();
-
-                if (!Directory.Exists(ApplicationInfo.SteamGiveawaysBotDirectory) ||
-                    string.Compare(latestVersion, ApplicationInfo.SteamGiveawaysBotVersion) > 0)
-                {
-                    ApplicationUpdater.UpdateApplication(latestVersion);
-                }
-            }
-            catch
-            {
-                Console.WriteLine("Error checking for updates");
-            }
         }
     }
 }

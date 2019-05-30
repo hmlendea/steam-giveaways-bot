@@ -35,12 +35,21 @@ namespace SteamGiveawaysBot.Launcher
             set => File.WriteAllText(VersionFileName, value);
         }
 
-        public static string Platform => GetFileContent(PlatformFileName);
+        public static string Platform => GetFileContent(PlatformFileName, "win-x64");
 
         static string GetFileContent(string fileName)
+            => GetFileContent(fileName, null);
+
+        static string GetFileContent(string fileName, string defaultValue)
         {
             string filePath = Path.Combine(ApplicationDirectory, fileName);
-            return File.ReadAllText(filePath);
+
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllText(filePath);
+            }
+
+            return defaultValue;
         }
     }
 }
