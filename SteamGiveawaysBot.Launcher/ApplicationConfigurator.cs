@@ -9,7 +9,7 @@ namespace SteamGiveawaysBot.Launcher
 
         public static void ApplyTextReplacements()
         {
-            string appSettingsFilePath = Path.Combine(ApplicationInfo.SteamGiveawaysBotDirectory, "appsettings.json");
+            string appSettingsFilePath = Path.Combine(ApplicationInfo.ApplicationDirectory, "appsettings.json");
             IDictionary<string, string> textReplacements = LoadTextReplacements();
 
             string fileContent = File.ReadAllText(appSettingsFilePath);
@@ -24,7 +24,7 @@ namespace SteamGiveawaysBot.Launcher
 
         static IDictionary<string, string> LoadTextReplacements()
         {
-            string filePath = Path.Combine(ApplicationInfo.ApplicationDirectory, TextReplacementsFileName);
+            string filePath = Path.Combine(ApplicationInfo.LauncherDirectory, TextReplacementsFileName);
 
             IDictionary<string, string> textReplacements = new Dictionary<string, string>();
 

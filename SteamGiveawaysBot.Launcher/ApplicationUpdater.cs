@@ -19,8 +19,8 @@ namespace SteamGiveawaysBot.Launcher
             {
                 string latestVersion = ApplicationUpdater.GetLatestVersionString();
 
-                if (!Directory.Exists(ApplicationInfo.SteamGiveawaysBotDirectory) ||
-                    string.Compare(latestVersion, ApplicationInfo.SteamGiveawaysBotVersion) > 0)
+                if (!Directory.Exists(ApplicationInfo.ApplicationDirectory) ||
+                    string.Compare(latestVersion, ApplicationInfo.ApplicationVersion) > 0)
                 {
                     ApplicationUpdater.UpdateApplication(latestVersion);
                 }
@@ -45,21 +45,21 @@ namespace SteamGiveawaysBot.Launcher
 
         public static void UpdateApplication(string version)
         {
-            string archivePath = Path.Combine(ApplicationInfo.ApplicationDirectory, "sgb.zip");
+            string archivePath = Path.Combine(ApplicationInfo.LauncherDirectory, "sgb.zip");
             
             DownloadSgb(archivePath, version, ApplicationInfo.Platform);
 
-            if (Directory.Exists(ApplicationInfo.SteamGiveawaysBotDirectory))
+            if (Directory.Exists(ApplicationInfo.ApplicationDirectory))
             {
-                Directory.Delete(ApplicationInfo.SteamGiveawaysBotDirectory, true);
+                Directory.Delete(ApplicationInfo.ApplicationDirectory, true);
             }
 
-            Directory.CreateDirectory(ApplicationInfo.SteamGiveawaysBotDirectory);
+            Directory.CreateDirectory(ApplicationInfo.ApplicationDirectory);
 
-            ZipFile.ExtractToDirectory(archivePath, ApplicationInfo.SteamGiveawaysBotDirectory);
+            ZipFile.ExtractToDirectory(archivePath, ApplicationInfo.ApplicationDirectory);
 
             File.Delete(archivePath);
-            ApplicationInfo.SteamGiveawaysBotVersion = version;
+            ApplicationInfo.ApplicationVersion = version;
         }
 
         public static void DownloadSgb(string filePath, string version, string platform)

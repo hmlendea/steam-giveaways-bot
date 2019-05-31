@@ -32,7 +32,7 @@ namespace SteamGiveawaysBot.Launcher
         static void LaunchApplication(string appExePath)
         {
             Process app = new Process();
-            app.StartInfo.WorkingDirectory = ApplicationInfo.ApplicationDirectory;
+            app.StartInfo.WorkingDirectory = ApplicationInfo.LauncherDirectory;
             app.StartInfo.CreateNoWindow = true;
 
             if (appExePath.EndsWith(".dll"))
@@ -53,7 +53,7 @@ namespace SteamGiveawaysBot.Launcher
         {
             foreach (string fileNameCandidate in fileNameCandidates)
             {
-                string filePath = Path.Combine(ApplicationInfo.SteamGiveawaysBotDirectory, fileNameCandidate);
+                string filePath = Path.Combine(ApplicationInfo.ApplicationDirectory, fileNameCandidate);
 
                 if (File.Exists(filePath))
                 {

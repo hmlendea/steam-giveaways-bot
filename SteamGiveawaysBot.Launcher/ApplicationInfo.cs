@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reflection;
+using System.Runtime;
 
 namespace SteamGiveawaysBot.Launcher
 {
@@ -11,10 +12,14 @@ namespace SteamGiveawaysBot.Launcher
 
         static string rootDirectory;
 
+        public static string LauncherName = nameof(SteamGiveawaysBot.Launcher);
+
+        public static string ApplicationName = nameof(SteamGiveawaysBot);
+
         /// <summary>
         /// The application directory.
         /// </summary>
-        public static string ApplicationDirectory
+        public static string LauncherDirectory
         {
             get
             {
@@ -27,9 +32,9 @@ namespace SteamGiveawaysBot.Launcher
             }
         }
 
-        public static string SteamGiveawaysBotDirectory => Path.Combine(ApplicationDirectory, SgbDirectoryName);
+        public static string ApplicationDirectory => Path.Combine(LauncherDirectory, SgbDirectoryName);
 
-        public static string SteamGiveawaysBotVersion
+        public static string ApplicationVersion
         {
             get => GetFileValue(VersionFileName);
             set => WriteFileContent(VersionFileName, value);
@@ -67,7 +72,7 @@ namespace SteamGiveawaysBot.Launcher
 
         static string GetFileContent(string fileName)
         {
-            string filePath = Path.Combine(ApplicationDirectory, fileName);
+            string filePath = Path.Combine(LauncherDirectory, fileName);
 
             if (File.Exists(filePath))
             {
@@ -79,7 +84,7 @@ namespace SteamGiveawaysBot.Launcher
 
         static void WriteFileContent(string fileName, string fileContent)
         {
-            string filePath = Path.Combine(ApplicationDirectory, fileName);
+            string filePath = Path.Combine(LauncherDirectory, fileName);
             File.WriteAllText(filePath, fileContent);
         }
     }
