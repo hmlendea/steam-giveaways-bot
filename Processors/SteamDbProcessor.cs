@@ -35,12 +35,23 @@ namespace SteamGiveawaysBot.Processors
 
             GoToUrl(FreePackagesListUrl);
 
+            By captchaSelector = By.Id("recaptcha_widget");
             By freePackagesBoxSelector = By.Id("freepackages");
             By packageSelector = By.ClassName("package");
 
-            WaitForElementToBeVisible(freePackagesBoxSelector);
-            WaitForElementToExist(packageSelector);
+            WaitForAnyElementToBeVisible(freePackagesBoxSelector, captchaSelector);
 
+            if (DoesElementExist(captchaSelector))
+            {
+                logger.Debug(
+                    MyOperation.FreePackagesRetrieval,
+                    OperationStatus.Failure,
+                    new LogInfo(MyLogInfoKey.Reason, "Captcha input required"));
+
+                return new List<uint>();
+            }
+
+            WaitForElementToExist(packageSelector);
             Wait(TimeSpan.FromSeconds(3));
             
             string pageSource = GetPageSource();
@@ -58,8 +69,6 @@ namespace SteamGiveawaysBot.Processors
         {
             List<string> lines = pageSource.Split('\n').ToList();
             List<uint> subIds = new List<uint>();
-
-            System.IO.File.WriteAllLines("sasa.txt", lines);
 
             foreach (string line in lines)
             {
