@@ -27,5 +27,7 @@ namespace SteamGiveawaysBot.Utils
         public static string AppSettingsFile => Path.Combine(ApplicationDirectory, "appsettings.json");
 
         public static string DataDirectory => Path.Combine(ApplicationDirectory, "Data");
+
+        public static string SteamDbExtensionFilePath => Path.Combine(DataDirectory, "steamdb.crx");
     }
 }

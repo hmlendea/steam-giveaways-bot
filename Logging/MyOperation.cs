@@ -31,5 +31,9 @@ namespace SteamGiveawaysBot.Logging
         public static Operation SteamGiftsLogIn => new MyOperation(nameof(SteamGiftsLogIn));
 
         public static Operation PlayTimeFaking => new MyOperation(nameof(PlayTimeFaking));
+
+        public static Operation FreePackagesRetrieval => new MyOperation(nameof(FreePackagesRetrieval));
+
+        public static Operation PackageActivation => new MyOperation(nameof(PackageActivation));
     }
 }

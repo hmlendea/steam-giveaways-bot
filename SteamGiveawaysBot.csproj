@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Data/steamdb.crx"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

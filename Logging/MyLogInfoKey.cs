@@ -39,5 +39,7 @@ namespace SteamGiveawaysBot.Logging
         public static LogInfoKey GamesCount => new MyLogInfoKey(nameof(GamesCount));
 
         public static LogInfoKey OwnedGamesCount => new MyLogInfoKey(nameof(OwnedGamesCount));
+
+        public static LogInfoKey SubId => new MyLogInfoKey(nameof(SubId));
     }
 }

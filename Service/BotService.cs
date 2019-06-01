@@ -18,6 +18,7 @@ using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
+using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Service
 {
@@ -99,6 +100,11 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
+            SteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
+            IEnumerable<string> freeSubids = steamDbProcessor.GetFreePackagesList();
+            
+            steamProcessor.ActivatePackages(freeSubids);
+
             IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
             PlayGames(ownedAppIds);
 
@@ -156,7 +162,6 @@ namespace SteamGiveawaysBot.Service
             options.AddArgument("--silent");
 			options.AddArgument("--disable-translate");
 			options.AddArgument("--disable-infobars");
-            options.AddArgument("--disable-extensions");
 
             if (debugSettings.IsHeadless)
             {
@@ -166,6 +171,8 @@ namespace SteamGiveawaysBot.Service
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--blink-settings=imagesEnabled=false");
             }
+
+            options.AddExtension(ApplicationPaths.SteamDbExtensionFilePath);
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.SuppressInitialDiagnosticInformation = true;

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using NuciExtensions;
 using NuciLog.Core;
 using NuciWeb;
 
@@ -23,6 +24,7 @@ namespace SteamGiveawaysBot.Processors
         public string LoginUrl => $"{HomePageUrl}/login/?redir=&redir_ssl=1";
         public string AccountUrl => $"{HomePageUrl}/account/";
         public string ChatUrl => $"{CommunityUrl}/chat/";
+        public string LicensesUrl => $"{AccountUrl}/licenses/";
 
         AccountDetails account;
         ILogger logger;
@@ -124,6 +126,81 @@ namespace SteamGiveawaysBot.Processors
             }
 
             return appIds;
+        }
+
+        public void ActivatePackages(IEnumerable<string> subIds)
+        {
+            const int packageCountToActivate = 50;
+
+            logger.Info(
+                MyOperation.PackageActivation,
+                OperationStatus.Started);
+
+            int activatedPackagesCount = 0;
+
+            for (int i = 0; i < packageCountToActivate; i++)
+            {
+                string subId = subIds.GetRandomElement();
+                bool wasActivated = ActivatePackage(subId);
+
+                if (!wasActivated)
+                {
+                    logger.Info(
+                        MyOperation.PackageActivation,
+                        OperationStatus.Failure,
+                        new LogInfo(MyLogInfoKey.SubId, subId));
+                    
+                    continue;
+                }
+
+                activatedPackagesCount += 1;
+            }
+
+            logger.Debug(
+                MyOperation.PackageActivation,
+                OperationStatus.Success,
+                new LogInfo(MyLogInfoKey.GamesCount, activatedPackagesCount));
+        }
+
+        bool ActivatePackage(string package)
+        {
+            GoToUrl(LicensesUrl);
+
+            By pageContentSelector = By.ClassName("page_content");
+            By lastGameTitleSelector = By.XPath(@"//table[@class='account_table']/tbody/tr[2]/td[2]");
+
+            WaitForElementToExist(pageContentSelector);
+
+            string activationScript = $"jQuery.post('//store.steampowered.com/checkout/addfreelicense',{{action:'add_to_cart',sessionid:g_sessionID,subid:{package}}})";
+            string previousGameTitle = string.Empty;
+            string currentGameTitle = string.Empty;
+
+            if (DoesElementExist(lastGameTitleSelector))
+            {
+                previousGameTitle = GetText(lastGameTitleSelector);
+            }
+
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                ExecuteScript(activationScript);
+
+                // TODO: Replace with Refresh()
+                GoToUrl("about:blank");
+                GoToUrl(LicensesUrl);
+                WaitForElementToExist(pageContentSelector);
+
+                if (DoesElementExist(lastGameTitleSelector))
+                {
+                    currentGameTitle = GetText(lastGameTitleSelector);
+                }
+
+                if (currentGameTitle != previousGameTitle)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         Country GetCountry()
