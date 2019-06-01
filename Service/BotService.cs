@@ -137,7 +137,7 @@ namespace SteamGiveawaysBot.Service
         void PlayGames(IEnumerable<uint> appIds)
         {
             int gamesCount = appIds.Count();
-            int gamesToPlayCount = (int)((float)gamesCount * 0.66f);
+            int gamesToPlayCount = (int)((float)gamesCount * 0.50f);
 
             logger.Info(
                 MyOperation.PlayTimeFaking,
