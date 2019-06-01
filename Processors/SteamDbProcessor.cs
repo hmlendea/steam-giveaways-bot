@@ -27,7 +27,7 @@ namespace SteamGiveawaysBot.Processors
             this.logger = logger;
         }
 
-        public IEnumerable<string> GetFreePackagesList()
+        public IEnumerable<uint> GetFreePackagesList()
         {
             logger.Info(
                 MyOperation.FreePackagesRetrieval,
@@ -44,7 +44,7 @@ namespace SteamGiveawaysBot.Processors
             Wait(TimeSpan.FromSeconds(3));
             
             string pageSource = GetPageSource();
-            IEnumerable<string> subIds = GetSubIdsFromSource(pageSource);
+            IEnumerable<uint> subIds = GetSubIdsFromSource(pageSource);
 
             logger.Debug(
                 MyOperation.FreePackagesRetrieval,
@@ -54,10 +54,12 @@ namespace SteamGiveawaysBot.Processors
             return subIds;
         }
 
-        IEnumerable<string> GetSubIdsFromSource(string pageSource)
+        IEnumerable<uint> GetSubIdsFromSource(string pageSource)
         {
             List<string> lines = pageSource.Split('\n').ToList();
-            List<string> subids = new List<string>();
+            List<uint> subIds = new List<uint>();
+
+            System.IO.File.WriteAllLines("sasa.txt", lines);
 
             foreach (string line in lines)
             {
@@ -67,15 +69,15 @@ namespace SteamGiveawaysBot.Processors
                 }
 
                 string[] lineSplit = line.Split(' ');
-                string subidField = lineSplit[2];
+                string subIdField = lineSplit[2];
 
-                string[] subidFieldSplit = subidField.Split('=');
-                string subid = subidFieldSplit[1].Replace("\"", "");
+                string[] subIdFieldSplit = subIdField.Split('=');
+                string subId = subIdFieldSplit[1].Replace("\"", "");
 
-                subids.Add(subid);
+                subIds.Add(uint.Parse(subId));
             }
 
-            return subids;
+            return subIds;
         }
     }
 }

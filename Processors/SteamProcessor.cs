@@ -19,6 +19,8 @@ namespace SteamGiveawaysBot.Processors
 {
     public sealed class SteamProcessor : WebProcessor
     {
+        const int PackagesActivationLimit = 50;
+
         public string HomePageUrl => "https://store.steampowered.com";
         public string CommunityUrl => "https://steamcommunity.com";
         public string LoginUrl => $"{HomePageUrl}/login/?redir=&redir_ssl=1";
@@ -128,32 +130,24 @@ namespace SteamGiveawaysBot.Processors
             return appIds;
         }
 
-        public void ActivatePackages(IEnumerable<string> subIds)
+        public void ActivatePackages(IEnumerable<uint> subIds)
         {
-            const int packageCountToActivate = 50;
-
             logger.Info(
                 MyOperation.PackageActivation,
                 OperationStatus.Started);
 
+            int packageCountToActivate = Math.Min(PackagesActivationLimit, subIds.Count());
             int activatedPackagesCount = 0;
 
             for (int i = 0; i < packageCountToActivate; i++)
             {
-                string subId = subIds.GetRandomElement();
+                uint subId = subIds.GetRandomElement();
                 bool wasActivated = ActivatePackage(subId);
 
-                if (!wasActivated)
+                if (wasActivated)
                 {
-                    logger.Info(
-                        MyOperation.PackageActivation,
-                        OperationStatus.Failure,
-                        new LogInfo(MyLogInfoKey.SubId, subId));
-                    
-                    continue;
+                    activatedPackagesCount += 1;
                 }
-
-                activatedPackagesCount += 1;
             }
 
             logger.Debug(
@@ -162,7 +156,19 @@ namespace SteamGiveawaysBot.Processors
                 new LogInfo(MyLogInfoKey.GamesCount, activatedPackagesCount));
         }
 
-        bool ActivatePackage(string package)
+        bool TryActivatePackage(uint package)
+        {
+            try
+            {
+                return ActivatePackage(package);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        bool ActivatePackage(uint package)
         {
             GoToUrl(LicensesUrl);
 

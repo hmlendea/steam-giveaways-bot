@@ -101,9 +101,12 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.VisitChat();
 
             SteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
-            IEnumerable<string> freeSubids = steamDbProcessor.GetFreePackagesList();
+            IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
-            steamProcessor.ActivatePackages(freeSubids);
+            if (freeSubIds.Any())
+            {
+                steamProcessor.ActivatePackages(freeSubIds);
+            }
 
             IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
             PlayGames(ownedAppIds);
