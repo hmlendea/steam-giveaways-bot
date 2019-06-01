@@ -184,9 +184,7 @@ namespace SteamGiveawaysBot.Processors
             {
                 ExecuteScript(activationScript);
 
-                // TODO: Replace with Refresh()
-                GoToUrl("about:blank");
-                GoToUrl(LicensesUrl);
+                Refresh();
                 WaitForElementToExist(pageContentSelector);
 
                 if (DoesElementExist(lastGameTitleSelector))

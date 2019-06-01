@@ -41,7 +41,6 @@ namespace SteamGiveawaysBot.Processors
             WaitForElementToBeVisible(freePackagesBoxSelector);
             WaitForElementToExist(packageSelector);
 
-
             Wait(TimeSpan.FromSeconds(3));
             
             string pageSource = GetPageSource();
