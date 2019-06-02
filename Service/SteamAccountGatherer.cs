@@ -59,8 +59,7 @@ namespace SteamGiveawaysBot.Service
             SteamAccountRequest request = BuildRequestObject();
 
             string endpoint = 
-                $"{botSettings.Endpoint}/SteamAccount" +
-                $"/{request.Username}" +
+                $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
                 $"?gaProvider=SteamGifts" + // TODO: Hardcoded
                 $"&hmac={request.HmacToken}";
             

@@ -2,7 +2,7 @@ namespace SteamGiveawaysBot.Configuration
 {
     public sealed class BotSettings
     {
-        public string Endpoint { get; set; }
+        public string ServerUrl { get; set; }
 
         public string Username { get; set; }
 

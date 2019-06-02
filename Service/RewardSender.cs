@@ -84,7 +84,7 @@ namespace SteamGiveawaysBot.Service
         string BuildRequestUrl(RecordRewardRequest request)
         {
             return
-                $"{botSettings.Endpoint}/Rewards" +
+                $"{botSettings.ServerUrl}/Rewards" +
                 $"?username={request.Username}" +
                 $"&gaProvider={request.GiveawaysProvider}" +
                 $"&gaId={request.GiveawayId}" +
