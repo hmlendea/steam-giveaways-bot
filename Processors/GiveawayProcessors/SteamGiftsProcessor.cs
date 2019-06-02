@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using NuciLog.Core;
@@ -9,10 +10,11 @@ using NuciWeb;
 
 using OpenQA.Selenium;
 
-using SteamGiveawaysBot.Communication.Notifications;
+using SteamGiveawaysBot.Communication;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
+using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
@@ -31,19 +33,19 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string SettingsUrl => $"{HomePageUrl}/account/settings/giveaways";
 
-        IMailNotifier mailNotifier;
+        IRewardSender rewardSender;
 
         public SteamGiftsProcessor(
             IWebDriver driver,
             AccountDetails account,
-            IMailNotifier mailNotifier,
+            IRewardSender rewardSender,
             ILogger logger)
             : base(driver, account, logger)
         {
             MinimumPoints = 20;
             MaximumPoints = 400;
 
-            this.mailNotifier = mailNotifier;
+            this.rewardSender = rewardSender;
         }
 
         public override void Register()
@@ -245,6 +247,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 By receivedStatusSelector = By.XPath($"{rewardItemXpath}/div[4]/div[(contains(@class,'table__gift-feedback-awaiting-reply') and contains(@class,'is-hidden')) or contains(@class,'is-faded')]");
                 By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
                 By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
+                By gameThumbnailSelector = By.XPath($"{rewardItemXpath}/div[1]/a");
                 By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
                 By keyClipboardSelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
                 By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
@@ -270,11 +273,17 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                string gameTitle = GetText(gameTitleSelector);
-                string giveawayLink = GetHyperlink(gameTitleSelector);
-                string gameKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
+                const string appIdPattern = ".*apps\\/([0-9]*)\\/.*";
+                string thumbnailStyle = GetAttribute(gameThumbnailSelector, "style");
 
-                mailNotifier.SendMail(account.Username, gameTitle, giveawayLink, gameKey);
+                Reward reward = new Reward();
+                reward.GiveawaysProvider = ProviderName;
+                reward.GiveawayUrl  = GetHyperlink(gameTitleSelector);
+                reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
+                reward.GameTitle = GetText(gameTitleSelector);
+                reward.ActivationKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
+
+                rewardSender.RecordReward(reward);
                 Click(receivedRadioSelector);
             }
         }

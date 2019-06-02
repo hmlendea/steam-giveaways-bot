@@ -10,7 +10,7 @@ using NuciLog.Core;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
-using SteamGiveawaysBot.Communication.Notifications;
+using SteamGiveawaysBot.Communication;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
@@ -32,7 +32,7 @@ namespace SteamGiveawaysBot.Service
 
         readonly ICredentialsEncryptor credentialsEncryptor;
 
-        readonly IMailNotifier mailNotifier;
+        readonly IRewardSender rewardSender;
 
         readonly ILogger logger;
 
@@ -42,13 +42,13 @@ namespace SteamGiveawaysBot.Service
             DebugSettings debugSettings,
             SteamSettings steamSettings,
             ICredentialsEncryptor credentialsEncryptor,
-            IMailNotifier mailNotifier,
+            IRewardSender rewardSender,
             ILogger logger)
         {
             this.debugSettings = debugSettings;
             this.steamSettings = steamSettings;
             this.credentialsEncryptor = credentialsEncryptor;
-            this.mailNotifier = mailNotifier;
+            this.rewardSender = rewardSender;
             this.logger = logger;
 
             account = new AccountDetails
@@ -112,7 +112,7 @@ namespace SteamGiveawaysBot.Service
             PlayGames(ownedAppIds);
 
             SteamGiftsProcessor steamGiftsProcessor =
-                new SteamGiftsProcessor(driver, account, mailNotifier, logger);
+                new SteamGiftsProcessor(driver, account, rewardSender, logger);
 
             try
             {

@@ -15,7 +15,6 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
-using SteamGiveawaysBot.Communication.Notifications;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
@@ -36,7 +35,6 @@ namespace SteamGiveawaysBot
 
         static BotSettings botSettings;
         static DebugSettings debugSettings;
-        static MailSettings mailSettings;
         static SteamSettings steamSettings;
 
         static IAppSettingsUpdater appSettingsUpdater;
@@ -51,28 +49,24 @@ namespace SteamGiveawaysBot
 
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
-            mailSettings = new MailSettings();
             steamSettings = new SteamSettings();
 
             config.Bind(nameof(botSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
-            config.Bind(nameof(MailSettings), mailSettings);
             config.Bind(nameof(SteamSettings), steamSettings);
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
-                .AddSingleton(mailSettings)
                 .AddSingleton(steamSettings)
                 .AddSingleton<IAppSettingsUpdater, AppSettingsUpdater>()
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
                 .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
-                .AddSingleton<IMailNotifier, GmailMailNotifier>()
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IAccountService, AccountService>()
-                .AddSingleton<IRewardService, RewardService>()
+                .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 
