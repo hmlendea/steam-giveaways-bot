@@ -15,9 +15,6 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
-using SteamGiveawaysBot.Communication.SteamAccountDistributor;
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
@@ -65,7 +62,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
                 .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
                 .AddSingleton<ILogger, NuciLogger>()
-                .AddSingleton<IAccountService, AccountService>()
+                .AddSingleton<ISteamAccountGatherer, SteamAccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
@@ -135,8 +132,8 @@ namespace SteamGiveawaysBot
         {
             try
             {
-                IAccountService accountService = serviceProvider.GetService<IAccountService>();
-                SteamAccount account = accountService.GatherAccount().Result; // TODO: Broken async
+                ISteamAccountGatherer steamAccountGatherer = serviceProvider.GetService<ISteamAccountGatherer>();
+                SteamAccount account = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
 
                 appSettingsUpdater.UpdateSetting("steamSettings.username", account.Username);
                 appSettingsUpdater.UpdateSetting("steamSettings.password", account.Password);

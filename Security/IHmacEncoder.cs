@@ -1,4 +1,4 @@
-namespace SteamGiveawaysBot.Communication.SteamAccountDistributor.Security
+namespace SteamGiveawaysBot.Security
 {
     public interface IHmacEncoder<T> where T : class
     {

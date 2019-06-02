@@ -10,7 +10,6 @@ using NuciWeb;
 
 using OpenQA.Selenium;
 
-using SteamGiveawaysBot.Communication;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;

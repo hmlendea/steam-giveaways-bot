@@ -6,7 +6,6 @@ using System.Web;
 
 using NuciLog.Core;
 
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;

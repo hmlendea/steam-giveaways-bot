@@ -1,7 +1,6 @@
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
 using SteamGiveawaysBot.Service.Models;
 
-namespace SteamGiveawaysBot.Communication.SteamAccountDistributor.Security
+namespace SteamGiveawaysBot.Security
 {
     public sealed class RecordRewardRequestHmacEncoder : HmacEncoder<RecordRewardRequest>
     {

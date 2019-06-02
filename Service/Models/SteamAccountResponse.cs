@@ -1,6 +1,6 @@
 using System;
 
-namespace SteamGiveawaysBot.Communication.SteamAccountDistributor.Models
+namespace SteamGiveawaysBot.Service.Models
 {
     public sealed class SteamAccountResponse
     {

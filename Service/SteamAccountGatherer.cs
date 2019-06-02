@@ -10,15 +10,14 @@ using Newtonsoft.Json;
 using NuciLog.Core;
 
 using SteamGiveawaysBot;
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Models;
-using SteamGiveawaysBot.Communication.SteamAccountDistributor.Security;
+using SteamGiveawaysBot.Service.Models;
+using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Security;
 
-namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
+namespace SteamGiveawaysBot.Service
 {
-    public sealed class AccountService : IAccountService
+    public sealed class SteamAccountGatherer : ISteamAccountGatherer
     {
         readonly HttpClient httpClient;
 
@@ -32,7 +31,7 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
 
         readonly ILogger logger;
 
-        public AccountService(
+        public SteamAccountGatherer(
             BotSettings botSettings,
             IHmacEncoder<SteamAccountRequest> requestEncoder,
             IHmacEncoder<SteamAccountResponse> responseEncoder,
