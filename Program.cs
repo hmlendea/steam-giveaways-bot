@@ -26,6 +26,7 @@ using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service;
+using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot
 {
@@ -33,7 +34,7 @@ namespace SteamGiveawaysBot
     {
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
-        static AccountDistributorSettings accountDistributorSettings;
+        static BotSettings botSettings;
         static DebugSettings debugSettings;
         static MailSettings mailSettings;
         static SteamSettings steamSettings;
@@ -48,28 +49,30 @@ namespace SteamGiveawaysBot
         {
             IConfiguration config = LoadConfiguration();
 
-            accountDistributorSettings = new AccountDistributorSettings();
+            botSettings = new BotSettings();
             debugSettings = new DebugSettings();
             mailSettings = new MailSettings();
             steamSettings = new SteamSettings();
 
-            config.Bind(nameof(accountDistributorSettings), accountDistributorSettings);
+            config.Bind(nameof(botSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
             config.Bind(nameof(MailSettings), mailSettings);
             config.Bind(nameof(SteamSettings), steamSettings);
 
             IServiceProvider serviceProvider = new ServiceCollection()
-                .AddSingleton(accountDistributorSettings)
+                .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
                 .AddSingleton(mailSettings)
                 .AddSingleton(steamSettings)
                 .AddSingleton<IAppSettingsUpdater, AppSettingsUpdater>()
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
+                .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
                 .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
                 .AddSingleton<IMailNotifier, GmailMailNotifier>()
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IAccountService, AccountService>()
+                .AddSingleton<IRewardService, RewardService>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 
@@ -99,7 +102,7 @@ namespace SteamGiveawaysBot
         {
             WaitForInternet();
 
-            if (accountDistributorSettings.IsEnabled)
+            if (botSettings.IsEnabled)
             {
                 UpdateAccountDetails(serviceProvider);
             }

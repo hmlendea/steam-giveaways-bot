@@ -1,6 +1,6 @@
 namespace SteamGiveawaysBot.Configuration
 {
-    public sealed class AccountDistributorSettings
+    public sealed class BotSettings
     {
         public bool IsEnabled { get; set; }
 
