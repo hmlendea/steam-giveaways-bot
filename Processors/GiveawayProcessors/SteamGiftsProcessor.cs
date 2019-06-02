@@ -272,6 +272,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 Reward reward = new Reward();
                 reward.GiveawaysProvider = ProviderName;
                 reward.GiveawayUrl  = GetHyperlink(gameTitleSelector);
+                reward.WinnerUsername = account.Username;
                 reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
                 reward.GameTitle = GetText(gameTitleSelector);
                 reward.ActivationKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");

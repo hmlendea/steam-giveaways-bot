@@ -15,6 +15,8 @@ namespace SteamGiveawaysBot.Entities
             }
         }
 
+        public string WinnerUsername { get; set; }
+
         public string SteamAppId { get; set; }
 
         public string GameTitle { get; set; }

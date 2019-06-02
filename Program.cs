@@ -16,6 +16,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
 using SteamGiveawaysBot.Configuration;
+using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
@@ -32,9 +33,6 @@ namespace SteamGiveawaysBot
 
         static BotSettings botSettings;
         static DebugSettings debugSettings;
-        static SteamSettings steamSettings;
-
-        static IAppSettingsUpdater appSettingsUpdater;
 
         static ILogger logger;
         
@@ -46,17 +44,13 @@ namespace SteamGiveawaysBot
 
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
-            steamSettings = new SteamSettings();
 
             config.Bind(nameof(botSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
-            config.Bind(nameof(SteamSettings), steamSettings);
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
-                .AddSingleton(steamSettings)
-                .AddSingleton<IAppSettingsUpdater, AppSettingsUpdater>()
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
@@ -70,8 +64,6 @@ namespace SteamGiveawaysBot
             logger = serviceProvider.GetService<ILogger>();
             logger.SetSourceContext<Program>();
             logger.Info(Operation.StartUp, $"Application started");
-
-            appSettingsUpdater = serviceProvider.GetService<IAppSettingsUpdater>();
 
             while (true)
             {
@@ -92,9 +84,19 @@ namespace SteamGiveawaysBot
         static void RunLoop(IServiceProvider serviceProvider)
         {
             WaitForInternet();
-            UpdateAccountDetails(serviceProvider);
 
-            IBotService botService = serviceProvider.GetService<IBotService>();
+            ISteamAccountGatherer steamAccountGatherer = serviceProvider.GetService<ISteamAccountGatherer>();
+            SteamAccount steamAccount = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
+
+            IRewardSender rewardSender = serviceProvider.GetService<IRewardSender>();
+            ILogger logger = serviceProvider.GetService<ILogger>();
+            logger.SetSourceContext<BotService>();
+            
+            IBotService botService = new BotService(
+                steamAccount,
+                debugSettings,
+                rewardSender,
+                logger);
 
             botService.Run();
         }
@@ -125,35 +127,6 @@ namespace SteamGiveawaysBot
                     new LogInfo(MyLogInfoKey.RetryDelay, ConnectionWaitTime.TotalMilliseconds));
 
                 Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
-            }
-        }
-
-        static void UpdateAccountDetails(IServiceProvider serviceProvider)
-        {
-            try
-            {
-                ISteamAccountGatherer steamAccountGatherer = serviceProvider.GetService<ISteamAccountGatherer>();
-                SteamAccount account = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
-
-                appSettingsUpdater.UpdateSetting("steamSettings.username", account.Username);
-                appSettingsUpdater.UpdateSetting("steamSettings.password", account.Password);
-
-                steamSettings.Username = account.Username;
-                steamSettings.Password = account.Password;
-
-                logger.Info(
-                    MyOperation.ConfigurationUpdate,
-                    OperationStatus.Success,
-                    $"Account details updated successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
-
-                logger.Warn(
-                    MyOperation.ConfigurationUpdate,
-                    OperationStatus.Failure,
-                    $"Unable to update the account details. Using the default ones instead");
             }
         }
         

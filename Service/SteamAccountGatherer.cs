@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using NuciLog.Core;
 
 using SteamGiveawaysBot;
+using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Service.Models;
 using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Configuration;
@@ -74,16 +75,18 @@ namespace SteamGiveawaysBot.Service
             SteamAccountResponse response = await DeserialiseResponse(httpResponse);
             ValdiateRespone(response, sharedSecretKey);
 
-            string passwordCypher = credentialsEncryptor.Encrypt(response.Password);
-
             // TODO: Do the mapping in a dedicated place
             SteamAccount account = new SteamAccount
             {
                 Username = response.Username,
-                Password = passwordCypher
+                Password = response.Password
             };
 
-            logger.Debug(MyOperation.AccountDetailsRetrieval, OperationStatus.Success);
+            logger.Debug(
+                MyOperation.AccountDetailsRetrieval,
+                OperationStatus.Success,
+                "Account details retrieved successfully",
+                new LogInfo(MyLogInfoKey.Username, account.Username));
 
             return account;
         }
