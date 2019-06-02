@@ -28,7 +28,7 @@ namespace SteamGiveawaysBot.Logging
 
         public static LogInfoKey GameTitle => new MyLogInfoKey(nameof(GameTitle));
 
-        public static LogInfoKey GiveawayCode => new MyLogInfoKey(nameof(GiveawayCode));
+        public static LogInfoKey GiveawayId => new MyLogInfoKey(nameof(GiveawayId));
 
         public static LogInfoKey Price => new MyLogInfoKey(nameof(Price));
 

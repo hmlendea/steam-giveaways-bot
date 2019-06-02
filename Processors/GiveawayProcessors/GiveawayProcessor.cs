@@ -19,6 +19,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public abstract class GiveawayProcessor : WebProcessor
     {
+        public abstract string ProviderName { get; }
+
         public abstract string HomePageUrl { get; }
 
         public abstract string RegistrationUrl { get; }
@@ -190,7 +192,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     MyOperation.JoinGiveaway,
                     OperationStatus.Success,
                     new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle),
-                    new LogInfo(MyLogInfoKey.GiveawayCode, giveaway.GiveawayCode),
+                    new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
                     new LogInfo(MyLogInfoKey.Price, giveaway.Price),
                     new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
             }

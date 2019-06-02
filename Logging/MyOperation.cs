@@ -22,6 +22,8 @@ namespace SteamGiveawaysBot.Logging
 
         public static Operation AccountDetailsRetrieval => new MyOperation(nameof(AccountDetailsRetrieval));
 
+        public static Operation RewardRecording => new MyOperation(nameof(RewardRecording));
+
         public static Operation RechargePoints => new MyOperation(nameof(RechargePoints));
 
         public static Operation JoinGiveaway => new MyOperation(nameof(JoinGiveaway));

@@ -22,7 +22,7 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
     {
         readonly HttpClient httpClient;
 
-        readonly AccountDistributorSettings accountDistributorSettings;
+        readonly BotSettings botSettings;
 
         readonly IHmacEncoder<SteamAccountRequest> requestHmacEncoder;
 
@@ -33,7 +33,7 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
         readonly ILogger logger;
 
         public AccountService(
-            AccountDistributorSettings accountDistributorSettings,
+            BotSettings botSettings,
             IHmacEncoder<SteamAccountRequest> requestEncoder,
             IHmacEncoder<SteamAccountResponse> responseEncoder,
             ICredentialsEncryptor credentialsEncryptor,
@@ -41,7 +41,7 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
         {
             httpClient = new HttpClient();
 
-            this.accountDistributorSettings = accountDistributorSettings;
+            this.botSettings = botSettings;
             this.requestHmacEncoder = requestEncoder;
             this.responseHmacEncoder = responseEncoder;
             this.credentialsEncryptor = credentialsEncryptor;
@@ -53,13 +53,14 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.SgbUser, accountDistributorSettings.Username));
+                new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            string sharedSecretKey = credentialsEncryptor.Decrypt(accountDistributorSettings.SharedSecretKey);
+            string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
 
             SteamAccountRequest request = BuildRequestObject();
 
-            string endpoint = accountDistributorSettings.Endpoint +
+            string endpoint = 
+                $"{botSettings.Endpoint}/SteamAccount" +
                 $"/{request.Username}" +
                 $"?gaProvider=SteamGifts" + // TODO: Hardcoded
                 $"&hmac={request.HmacToken}";
@@ -92,10 +93,10 @@ namespace SteamGiveawaysBot.Communication.SteamAccountDistributor
         SteamAccountRequest BuildRequestObject()
         {
             SteamAccountRequest request = new SteamAccountRequest();
-            request.Username = accountDistributorSettings.Username;
+            request.Username = botSettings.Username;
             request.GiveawaysProvider = "SteamGifts";
 
-            string sharedSecretKey = credentialsEncryptor.Decrypt(accountDistributorSettings.SharedSecretKey);
+            string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
 
             request.HmacToken = requestHmacEncoder.GenerateToken(request, sharedSecretKey);
 

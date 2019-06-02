@@ -19,6 +19,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public sealed class SteamGiftsProcessor : GiveawayProcessor
     {
+        public override string ProviderName => "SteamGifts";
+
         public override string HomePageUrl => "https://www.steamgifts.com";
 
         public override string RegistrationUrl => HomePageUrl;
@@ -188,7 +190,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 int price = int.Parse(priceSubstring);
                 DateTime endTime = DateTimeUtils.FromUnixTime(endTimeSelector);
 
-                Giveaway giveaway = new Giveaway(giveawayLink, gameTitle, price, endTime);
+                Giveaway giveaway = new Giveaway(ProviderName, giveawayLink, gameTitle, price, endTime);
 
                 if (LastProcessedGiveaway != giveaway)
                 {

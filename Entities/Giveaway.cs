@@ -6,7 +6,9 @@ namespace SteamGiveawaysBot.Entities
     {
         public string Url { get; }
 
-        public string GiveawayCode
+        public string ProviderName { get; set; }
+
+        public string Id
         {
             get
             {
@@ -32,7 +34,7 @@ namespace SteamGiveawaysBot.Entities
 
         public DateTime EndTime { get; }
 
-        public Giveaway(string url, string gameTitle, int price, DateTime endTime)
+        public Giveaway(string providerName, string url, string gameTitle, int price, DateTime endTime)
         {
             Url = url;
             GameTitle = gameTitle;
