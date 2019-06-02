@@ -244,18 +244,12 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             {
                 string rewardItemXpath = $"//div[@class='table__rows']/div[{i + 1}]/div[1]";
                 
-                By receivedStatusSelector = By.XPath($"{rewardItemXpath}/div[4]/div[(contains(@class,'table__gift-feedback-awaiting-reply') and contains(@class,'is-hidden')) or contains(@class,'is-faded')]");
                 By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
                 By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
                 By gameThumbnailSelector = By.XPath($"{rewardItemXpath}/div[1]/a");
                 By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
                 By keyClipboardSelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
                 By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
-
-                if (DoesElementExist(receivedStatusSelector))
-                {
-                    continue;
-                }
 
                 if (DoesElementExist(viewKeyButtonSelector))
                 {
