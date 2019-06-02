@@ -15,7 +15,7 @@ using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Service
 {
-    public sealed class RewardService : IRewardService
+    public sealed class RewardSender : IRewardSender
     {
         readonly HttpClient httpClient;
 
@@ -29,7 +29,7 @@ namespace SteamGiveawaysBot.Service
 
         readonly ILogger logger;
 
-        public RewardService(
+        public RewardSender(
             BotSettings botSettings,
             SteamSettings steamSettings,
             IHmacEncoder<RecordRewardRequest> requestEncoder,
@@ -45,35 +45,35 @@ namespace SteamGiveawaysBot.Service
             this.logger = logger;
         }
 
-        public async Task RecordReward(Giveaway giveaway, string activationKey)
+        public async Task RecordReward(Reward reward)
         {
             logger.Info(
                 MyOperation.RewardRecording,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
+                new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            RecordRewardRequest request = BuildRequestObject(giveaway, activationKey);
+            RecordRewardRequest request = BuildRequestObject(reward);
             string requestUrl = BuildRequestUrl(request);
             await SendRequest(requestUrl);
 
             logger.Debug(
                 MyOperation.RewardRecording,
                 OperationStatus.Success,
-                new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
+                new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
         }
 
-        public RecordRewardRequest BuildRequestObject(Giveaway giveaway, string activationKey)
+        public RecordRewardRequest BuildRequestObject(Reward reward)
         {
             RecordRewardRequest request = new RecordRewardRequest();
             request.Username = botSettings.Username;
-            request.GiveawaysProvider = giveaway.ProviderName;
-            request.GiveawayId = giveaway.Id;
+            request.GiveawaysProvider = reward.GiveawaysProvider;
+            request.GiveawayId = reward.GiveawayId;
             request.SteamUsername = steamSettings.Username;
-            request.SteamAppId = giveaway.SteamAppId;
-            request.GameTitle = giveaway.GameTitle;
-            request.ActivationKey = activationKey;
+            request.SteamAppId = reward.SteamAppId;
+            request.GameTitle = reward.GameTitle;
+            request.ActivationKey = reward.ActivationKey;
 
             string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
 
@@ -98,9 +98,8 @@ namespace SteamGiveawaysBot.Service
 
         async Task SendRequest(string url)
         {
-            Console.WriteLine(url);
-            HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
-Console.WriteLine("SASA");
+            HttpResponseMessage httpResponse = await httpClient.PostAsync(url, null);
+
             if (!httpResponse.IsSuccessStatusCode)
             {
                 // TODO: Handle this case properly

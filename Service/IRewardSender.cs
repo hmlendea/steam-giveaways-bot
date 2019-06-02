@@ -4,8 +4,8 @@ using SteamGiveawaysBot.Entities;
 
 namespace SteamGiveawaysBot.Service
 {
-    public interface IRewardService
+    public interface IRewardSender
     {
-        Task RecordReward(Giveaway giveaway, string activationKey);
+        Task RecordReward(Reward reward);
     }
 }
