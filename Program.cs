@@ -95,11 +95,7 @@ namespace SteamGiveawaysBot
         static void RunLoop(IServiceProvider serviceProvider)
         {
             WaitForInternet();
-
-            if (botSettings.IsEnabled)
-            {
-                UpdateAccountDetails(serviceProvider);
-            }
+            UpdateAccountDetails(serviceProvider);
 
             IBotService botService = serviceProvider.GetService<IBotService>();
 
