@@ -157,7 +157,6 @@ namespace SteamGiveawaysBot.Processors
 
                 if (callback.Result == EResult.AccountLogonDenied)
                 {
-                    Console.WriteLine("err login");
                     throw new AuthenticationException("Unable to logon to Steam: This account is SteamGuard protected.");
                 }
 

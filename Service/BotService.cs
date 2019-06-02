@@ -43,9 +43,6 @@ namespace SteamGiveawaysBot.Service
             this.rewardSender = rewardSender;
             this.logger = logger;
 
-            Console.WriteLine(steamAccount.Username);
-            Console.WriteLine(steamAccount.Password);
-
             account = new AccountDetails
             {
                 Username = steamAccount.Username,
