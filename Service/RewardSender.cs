@@ -22,21 +22,17 @@ namespace SteamGiveawaysBot.Service
 
         readonly IHmacEncoder<RecordRewardRequest> requestHmacEncoder;
 
-        readonly ICredentialsEncryptor credentialsEncryptor;
-
         readonly ILogger logger;
 
         public RewardSender(
             BotSettings botSettings,
             IHmacEncoder<RecordRewardRequest> requestEncoder,
-            ICredentialsEncryptor credentialsEncryptor,
             ILogger logger)
         {
             httpClient = new HttpClient();
 
             this.botSettings = botSettings;
             this.requestHmacEncoder = requestEncoder;
-            this.credentialsEncryptor = credentialsEncryptor;
             this.logger = logger;
         }
 
@@ -69,10 +65,7 @@ namespace SteamGiveawaysBot.Service
             request.SteamAppId = reward.SteamAppId;
             request.GameTitle = reward.GameTitle;
             request.ActivationKey = reward.ActivationKey;
-
-            string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
-
-            request.HmacToken = requestHmacEncoder.GenerateToken(request, sharedSecretKey);
+            request.HmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
 
             return request;
         }

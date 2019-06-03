@@ -28,15 +28,12 @@ namespace SteamGiveawaysBot.Service
 
         readonly IHmacEncoder<SteamAccountResponse> responseHmacEncoder;
 
-        readonly ICredentialsEncryptor credentialsEncryptor;
-
         readonly ILogger logger;
 
         public SteamAccountGatherer(
             BotSettings botSettings,
             IHmacEncoder<SteamAccountRequest> requestEncoder,
             IHmacEncoder<SteamAccountResponse> responseEncoder,
-            ICredentialsEncryptor credentialsEncryptor,
             ILogger logger)
         {
             httpClient = new HttpClient();
@@ -44,7 +41,6 @@ namespace SteamGiveawaysBot.Service
             this.botSettings = botSettings;
             this.requestHmacEncoder = requestEncoder;
             this.responseHmacEncoder = responseEncoder;
-            this.credentialsEncryptor = credentialsEncryptor;
             this.logger = logger;
         }
 
@@ -54,8 +50,6 @@ namespace SteamGiveawaysBot.Service
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
-
-            string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
 
             SteamAccountRequest request = BuildRequestObject();
 
@@ -73,7 +67,7 @@ namespace SteamGiveawaysBot.Service
             }
             
             SteamAccountResponse response = await DeserialiseResponse(httpResponse);
-            ValdiateRespone(response, sharedSecretKey);
+            ValdiateRespone(response, botSettings.SharedSecretKey);
 
             // TODO: Do the mapping in a dedicated place
             SteamAccount account = new SteamAccount
@@ -96,10 +90,7 @@ namespace SteamGiveawaysBot.Service
             SteamAccountRequest request = new SteamAccountRequest();
             request.Username = botSettings.Username;
             request.GiveawaysProvider = "SteamGifts";
-
-            string sharedSecretKey = credentialsEncryptor.Decrypt(botSettings.SharedSecretKey);
-
-            request.HmacToken = requestHmacEncoder.GenerateToken(request, sharedSecretKey);
+            request.HmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
 
             return request;
         }

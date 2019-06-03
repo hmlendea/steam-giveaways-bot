@@ -58,7 +58,6 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
                 .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
-                .AddSingleton<ICredentialsEncryptor, CredentialsEncryptor>()
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<ISteamAccountGatherer, SteamAccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
