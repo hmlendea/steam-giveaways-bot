@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using NuciCLI;
 using NuciLog;
 using NuciLog.Core;
 
@@ -29,6 +30,9 @@ namespace SteamGiveawaysBot
 {
     public sealed class Program
     {
+        static string[] UsernameOptions = { "-u", "--user", "--username" };
+        static string[] SecretKeyOptions = { "-k", "--ssk", "--key", "--secretkey", "--sharedsecretkey" };
+
         static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
 
         static BotSettings botSettings;
@@ -40,13 +44,13 @@ namespace SteamGiveawaysBot
 
         static void Main(string[] args)
         {
-            IConfiguration config = LoadConfiguration();
-
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
 
+            IConfiguration config = LoadConfiguration();
             config.Bind(nameof(botSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
+            LoadBotCredentials(args);
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
@@ -79,6 +83,19 @@ namespace SteamGiveawaysBot
             }
 
             logger.Info(Operation.ShutDown, $"Application stopped");
+        }
+
+        static void LoadBotCredentials(string[] args)
+        {
+            if (CliArgumentsReader.HasOption(args, UsernameOptions))
+            {
+                botSettings.Username = CliArgumentsReader.GetOptionValue(args, UsernameOptions);
+            }
+
+            if (CliArgumentsReader.HasOption(args, SecretKeyOptions))
+            {
+                botSettings.SharedSecretKey = CliArgumentsReader.GetOptionValue(args, SecretKeyOptions);
+            }
         }
 
         static void RunLoop(IServiceProvider serviceProvider)
