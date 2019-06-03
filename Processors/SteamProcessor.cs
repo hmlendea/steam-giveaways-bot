@@ -68,7 +68,7 @@ namespace SteamGiveawaysBot.Processors
             WaitForElementToExist(avatarSelector);
 
             logger.Debug(
-                MyOperation.SteamGiftsLogIn,
+                MyOperation.SteamLogIn,
                 OperationStatus.Success);
         }
 
