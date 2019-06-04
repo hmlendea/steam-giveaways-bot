@@ -155,6 +155,8 @@ namespace SteamGiveawaysBot.Service
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
             options.AddArgument("--silent");
+            options.AddArgument("--no-sandbox");
+            options.AddArgument("--incognito");
 			options.AddArgument("--disable-translate");
 			options.AddArgument("--disable-infobars");
 
@@ -165,6 +167,7 @@ namespace SteamGiveawaysBot.Service
                 options.AddArgument("--window-size=1920,1080");
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--blink-settings=imagesEnabled=false");
+                options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
             }
 
             options.AddExtension(ApplicationPaths.SteamDbExtensionFilePath);
