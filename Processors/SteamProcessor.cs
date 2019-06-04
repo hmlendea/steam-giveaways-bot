@@ -27,6 +27,7 @@ namespace SteamGiveawaysBot.Processors
         public string AccountUrl => $"{HomePageUrl}/account/";
         public string ChatUrl => $"{CommunityUrl}/chat/";
         public string LicensesUrl => $"{AccountUrl}/licenses/";
+        public string AddFreeLicenseUrlFormat => HomePageUrl + "/checkout/addfreelicense/{0}";
 
         AccountDetails account;
         ILogger logger;
@@ -177,7 +178,8 @@ namespace SteamGiveawaysBot.Processors
 
             WaitForElementToExist(pageContentSelector);
 
-            string activationScript = $"jQuery.post('//store.steampowered.com/checkout/addfreelicense',{{action:'add_to_cart',sessionid:g_sessionID,subid:{package}}})";
+            string activationEndpoint = string.Format(AddFreeLicenseUrlFormat, package);
+            string activationScript = $"jQuery.post('{activationEndpoint}',{{ajax:true,sessionid:g_sessionID}})";
             string previousGameTitle = string.Empty;
             string currentGameTitle = string.Empty;
 
@@ -186,10 +188,12 @@ namespace SteamGiveawaysBot.Processors
                 previousGameTitle = GetText(lastGameTitleSelector);
             }
 
-            for (int attempt = 0; attempt < 3; attempt++)
-            {
-                ExecuteScript(activationScript);
+            logger.Info(package.ToString());
+            ExecuteScript(activationScript);
+            Wait(250);
 
+            for (int checkCount = 0; checkCount < 2; checkCount++)
+            {
                 Refresh();
                 WaitForElementToExist(pageContentSelector);
 

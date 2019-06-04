@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Linq;
 
 using NuciLog.Core;
@@ -35,6 +36,23 @@ namespace SteamGiveawaysBot.Processors
 
             GoToUrl(FreePackagesListUrl);
 
+            IEnumerable<uint> subIds = GetFreePackagesFromChromeDriverSource();
+
+            if (!subIds.Any())
+            {
+                subIds = GetFreePackagesFromWebClientSource();
+            }
+
+            logger.Debug(
+                MyOperation.FreePackagesRetrieval,
+                OperationStatus.Success,
+                new LogInfo(MyLogInfoKey.GamesCount, subIds.Count()));
+            
+            return subIds;
+        }
+
+        IEnumerable<uint> GetFreePackagesFromChromeDriverSource()
+        {
             By captchaSelector = By.Id("recaptcha_widget");
             By freePackagesBoxSelector = By.Id("freepackages");
             By packageSelector = By.ClassName("package");
@@ -57,12 +75,16 @@ namespace SteamGiveawaysBot.Processors
             string pageSource = GetPageSource();
             IEnumerable<uint> subIds = GetSubIdsFromSource(pageSource);
 
-            logger.Debug(
-                MyOperation.FreePackagesRetrieval,
-                OperationStatus.Success,
-                new LogInfo(MyLogInfoKey.GamesCount, subIds.Count()));
-            
             return subIds;
+        }
+
+        IEnumerable<uint> GetFreePackagesFromWebClientSource()
+        {
+            using (WebClient client = new WebClient())
+            {
+                string html = client.DownloadString(FreePackagesListUrl);
+                return GetSubIdsFromSource(html);
+            }
         }
 
         IEnumerable<uint> GetSubIdsFromSource(string pageSource)
