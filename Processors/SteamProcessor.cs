@@ -188,7 +188,6 @@ namespace SteamGiveawaysBot.Processors
                 previousGameTitle = GetText(lastGameTitleSelector);
             }
 
-            logger.Info(package.ToString());
             ExecuteScript(activationScript);
             Wait(250);
 
