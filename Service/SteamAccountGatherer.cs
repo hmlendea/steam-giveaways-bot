@@ -62,11 +62,11 @@ namespace SteamGiveawaysBot.Service
 
             if (!httpResponse.IsSuccessStatusCode)
             {
-                // TODO: Handle this case properly
-                throw new Exception("Error response");
+                ErrorResponse errorResponse = await DeserialiseErrorResponse(httpResponse);
+                throw new Exception(errorResponse.ErrorMessage);
             }
             
-            SteamAccountResponse response = await DeserialiseResponse(httpResponse);
+            SteamAccountResponse response = await DeserialiseSuccessResponse(httpResponse);
             ValdiateRespone(response, botSettings.SharedSecretKey);
 
             // TODO: Do the mapping in a dedicated place
@@ -95,10 +95,18 @@ namespace SteamGiveawaysBot.Service
             return request;
         }
 
-        async Task<SteamAccountResponse> DeserialiseResponse(HttpResponseMessage httpResponse)
+        async Task<SteamAccountResponse> DeserialiseSuccessResponse(HttpResponseMessage httpResponse)
         {
             string responseString = await httpResponse.Content.ReadAsStringAsync();
             SteamAccountResponse response = JsonConvert.DeserializeObject<SteamAccountResponse>(responseString);
+
+            return response;
+        }
+
+        async Task<ErrorResponse> DeserialiseErrorResponse(HttpResponseMessage httpResponse)
+        {
+            string responseString = await httpResponse.Content.ReadAsStringAsync();
+            ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             return response;
         }
