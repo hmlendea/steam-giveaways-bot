@@ -4,6 +4,7 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+using NuciSecurity.HMAC;
 
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Security;

@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NuciCLI;
 using NuciLog;
 using NuciLog.Core;
+using NuciSecurity.HMAC;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -69,6 +70,17 @@ namespace SteamGiveawaysBot
             logger = serviceProvider.GetService<ILogger>();
             logger.SetSourceContext<Program>();
             logger.Info(Operation.StartUp, $"Application started");
+
+            IRewardSender rewardSender = serviceProvider.GetService<IRewardSender>();
+            Reward reward = new Reward();
+            reward.GiveawaysProvider = "testProvider";
+            reward.GiveawayUrl = "testUrl/TEST/TEST/TEST/TEST";
+            reward.WinnerUsername = "testWinner";
+            reward.SteamAppId = "testAppid";
+            reward.GameTitle = "testTitle";
+            reward.ActivationKey = "testKey";
+
+            rewardSender.RecordReward(reward);
 
             while (true)
             {
