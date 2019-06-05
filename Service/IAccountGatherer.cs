@@ -4,7 +4,7 @@ using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Service
 {
-    public interface ISteamAccountGatherer
+    public interface IAccountGatherer
     {
         Task<SteamAccount> GatherAccount();
     }

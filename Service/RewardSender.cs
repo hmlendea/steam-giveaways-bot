@@ -9,7 +9,6 @@ using NuciLog.Core;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Service
@@ -20,19 +19,19 @@ namespace SteamGiveawaysBot.Service
 
         readonly BotSettings botSettings;
 
-        readonly IHmacEncoder<RecordRewardRequest> requestHmacEncoder;
+        readonly IServerCommunicator<RecordRewardRequest> serverCommunicator;
 
         readonly ILogger logger;
 
         public RewardSender(
             BotSettings botSettings,
-            IHmacEncoder<RecordRewardRequest> requestEncoder,
+            IServerCommunicator<RecordRewardRequest> serverCommunicator,
             ILogger logger)
         {
             httpClient = new HttpClient();
 
             this.botSettings = botSettings;
-            this.requestHmacEncoder = requestEncoder;
+            this.serverCommunicator = serverCommunicator;
             this.logger = logger;
         }
 
@@ -45,8 +44,9 @@ namespace SteamGiveawaysBot.Service
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
             RecordRewardRequest request = BuildRequestObject(reward);
-            string requestUrl = BuildRequestUrl(request);
-            await SendRequest(requestUrl);
+            string endpoint = BuildRequestUrl(request);
+
+            await serverCommunicator.SendRequest(HttpMethod.Post, endpoint, request);
 
             logger.Debug(
                 MyOperation.RewardRecording,
@@ -65,7 +65,6 @@ namespace SteamGiveawaysBot.Service
             request.SteamAppId = reward.SteamAppId;
             request.GameTitle = reward.GameTitle;
             request.ActivationKey = reward.ActivationKey;
-            request.HmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
 
             return request;
         }
@@ -80,19 +79,7 @@ namespace SteamGiveawaysBot.Service
                 $"&steamUsername={request.SteamUsername}" +
                 $"&steamAppId={request.SteamAppId}" +
                 $"&gameTitle={HttpUtility.UrlEncode(request.GameTitle)}" +
-                $"&activationKey={request.ActivationKey}" +
-                $"&hmac={request.HmacToken}";
-        }
-
-        async Task SendRequest(string url)
-        {
-            HttpResponseMessage httpResponse = await httpClient.PostAsync(url, null);
-
-            if (!httpResponse.IsSuccessStatusCode)
-            {
-                // TODO: Handle this case properly
-                throw new Exception("Error response");
-            }
+                $"&activationKey={request.ActivationKey}";
         }
     }
 }

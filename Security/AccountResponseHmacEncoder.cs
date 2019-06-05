@@ -2,9 +2,9 @@ using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Security
 {
-    public sealed class SteamAccountResponseHmacEncoder : HmacEncoder<SteamAccountResponse>
+    public sealed class AccountResponseHmacEncoder : HmacEncoder<AccountResponse>
     {
-        public override string GenerateToken(SteamAccountResponse obj, string sharedSecretKey)
+        public override string GenerateToken(AccountResponse obj, string sharedSecretKey)
         {
             string stringForSigning =
                 obj.Username +

@@ -1,6 +1,6 @@
 namespace SteamGiveawaysBot.Service.Models
 {
-    public sealed class RecordRewardRequest
+    public sealed class RecordRewardRequest : Request
     {
         public string Username { get; set; }
 
@@ -15,7 +15,5 @@ namespace SteamGiveawaysBot.Service.Models
         public string GameTitle { get; set; }
 
         public string ActivationKey { get; set; }
-
-        public string HmacToken { get; set; }
     }
 }

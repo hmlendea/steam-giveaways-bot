@@ -55,11 +55,13 @@ namespace SteamGiveawaysBot
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
-                .AddSingleton<IHmacEncoder<SteamAccountRequest>, SteamAccountRequestHmacEncoder>()
-                .AddSingleton<IHmacEncoder<SteamAccountResponse>, SteamAccountResponseHmacEncoder>()
-                .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
                 .AddSingleton<ILogger, NuciLogger>()
-                .AddSingleton<ISteamAccountGatherer, SteamAccountGatherer>()
+                .AddSingleton<IHmacEncoder<AccountRequest>, AccountRequestHmacEncoder>()
+                .AddSingleton<IHmacEncoder<AccountResponse>, AccountResponseHmacEncoder>()
+                .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
+                .AddSingleton<IServerCommunicator<AccountRequest, AccountResponse>, ServerCommunicator<AccountRequest, AccountResponse>>()
+                .AddSingleton<IServerCommunicator<RecordRewardRequest>, ServerCommunicator<RecordRewardRequest>>()
+                .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
@@ -110,7 +112,7 @@ namespace SteamGiveawaysBot
         {
             WaitForInternet();
 
-            ISteamAccountGatherer steamAccountGatherer = serviceProvider.GetService<ISteamAccountGatherer>();
+            IAccountGatherer steamAccountGatherer = serviceProvider.GetService<IAccountGatherer>();
             SteamAccount steamAccount = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
 
             IRewardSender rewardSender = serviceProvider.GetService<IRewardSender>();

@@ -2,10 +2,8 @@ using System;
 
 namespace SteamGiveawaysBot.Service.Models
 {
-    public sealed class ErrorResponse
+    public sealed class ErrorResponse : Response
     {
-        public bool IsSuccess { get; set; }
-
         public string ErrorMessage { get; set; }
     }
 }
