@@ -269,12 +269,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 const string appIdPattern = ".*apps\\/([0-9]*)\\/.*";
                 string thumbnailStyle = GetAttribute(gameThumbnailSelector, "style");
 
+                string giveawayUrl = GetHyperlink(gameTitleSelector);
+                string[] giveawayUrlFields = giveawayUrl.Split('/');
+
                 Reward reward = new Reward();
                 reward.GiveawaysProvider = ProviderName;
-                reward.GiveawayUrl  = GetHyperlink(gameTitleSelector);
+                reward.GiveawayId  = giveawayUrlFields[giveawayUrlFields.Length - 2];
                 reward.WinnerUsername = account.Username;
                 reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
-                reward.GameTitle = GetText(gameTitleSelector);
                 reward.ActivationKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
                 rewardSender.RecordReward(reward);

@@ -63,7 +63,6 @@ namespace SteamGiveawaysBot.Service
             request.GiveawayId = reward.GiveawayId;
             request.SteamUsername = reward.WinnerUsername;
             request.SteamAppId = reward.SteamAppId;
-            request.GameTitle = reward.GameTitle;
             request.ActivationKey = reward.ActivationKey;
 
             return request;
@@ -78,7 +77,6 @@ namespace SteamGiveawaysBot.Service
                 $"&gaId={request.GiveawayId}" +
                 $"&steamUsername={request.SteamUsername}" +
                 $"&steamAppId={request.SteamAppId}" +
-                $"&gameTitle={HttpUtility.UrlEncode(request.GameTitle)}" +
                 $"&activationKey={request.ActivationKey}";
         }
     }
