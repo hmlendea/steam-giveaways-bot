@@ -260,7 +260,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 {
                     string keyStatus = GetText(keyStatusSelector).Trim();
 
-                    if (keyStatus.Length == 1)
+                    if (keyStatus.Length <= 3)
                     {
                         continue;
                     }
@@ -280,7 +280,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 reward.ActivationKey = GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
                 rewardSender.RecordReward(reward);
-                Click(receivedRadioSelector);
+
+                if (IsElementVisible(receivedRadioSelector))
+                {
+                    Click(receivedRadioSelector);
+                }
             }
         }
 
