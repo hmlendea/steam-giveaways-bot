@@ -1,6 +1,6 @@
 namespace SteamGiveawaysBot.Service.Models
 {
-    public sealed class RecordRewardRequest : Request
+    public sealed class RecordRewardRequest
     {
         public string Username { get; set; }
 

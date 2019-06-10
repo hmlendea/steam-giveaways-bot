@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using System.Web;
 
 using Newtonsoft.Json;
 using NuciSecurity.HMAC;
@@ -13,7 +14,7 @@ using SteamGiveawaysBot.Service.Models;
 namespace SteamGiveawaysBot.Service
 {
     public class ServerCommunicator<TRequest> : IServerCommunicator<TRequest>
-        where TRequest : Request
+        where TRequest : class
     {
         readonly HttpClient httpClient;
 
@@ -33,14 +34,10 @@ namespace SteamGiveawaysBot.Service
 
         public async Task<HttpResponseMessage> SendRequest(HttpMethod method, string endpoint, TRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.HmacToken))
-            {
-                request.HmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
-            }
-
             if (!endpoint.Contains("&hmac="))
             {
-                endpoint += $"&hmac={request.HmacToken}";
+                string hmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
+                endpoint += $"&hmac={HttpUtility.UrlEncode(hmacToken)}";
             }
 
             HttpResponseMessage httpResponse = await SendHttpRequest(method, endpoint);
@@ -84,7 +81,7 @@ namespace SteamGiveawaysBot.Service
     }
         
     public class ServerCommunicator<TRequest, TResponse> : ServerCommunicator<TRequest>, IServerCommunicator<TRequest, TResponse>
-        where TRequest : Request
+        where TRequest : class
         where TResponse : Response
     {
         readonly HttpClient httpClient;
