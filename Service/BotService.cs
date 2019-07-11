@@ -156,7 +156,6 @@ namespace SteamGiveawaysBot.Service
             options.PageLoadStrategy = PageLoadStrategy.None;
             options.AddArgument("--silent");
             options.AddArgument("--no-sandbox");
-            options.AddArgument("--incognito");
 			options.AddArgument("--disable-translate");
 			options.AddArgument("--disable-infobars");
 
