@@ -174,6 +174,18 @@ namespace SteamGiveawaysBot.Service
             service.HideCommandPromptWindow = true;
 
             IWebDriver driver = new ChromeDriver(service, options);
+            IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
+            string userAgent = (string)scriptExecutor.ExecuteScript("return navigator.userAgent;");
+
+            if (userAgent.Contains("Headless"))
+            {
+                userAgent = userAgent.Replace("Headless", "");
+                options.AddArgument($"--user-agent={userAgent}");
+
+                driver.Quit();
+                driver = new ChromeDriver(service, options);
+            }
+
             driver.Manage().Window.Maximize();
 
             return driver;
