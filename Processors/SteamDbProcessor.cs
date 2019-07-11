@@ -36,11 +36,21 @@ namespace SteamGiveawaysBot.Processors
 
             GoToUrl(FreePackagesListUrl);
 
-            IEnumerable<uint> subIds = GetFreePackagesFromChromeDriverSource();
-
-            if (!subIds.Any())
+            IEnumerable<uint> subIds = null;
+            
+            try
             {
-                subIds = GetFreePackagesFromWebClientSource();
+                subIds = GetFreePackagesFromChromeDriverSource();
+
+                if (!subIds.Any())
+                {
+                    subIds = GetFreePackagesFromWebClientSource();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Debug(MyOperation.FreePackagesRetrieval, OperationStatus.Failure, ex);
+                return null;
             }
 
             logger.Debug(

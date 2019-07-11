@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 
 using NuciExtensions;
 using NuciLog.Core;
@@ -95,7 +93,7 @@ namespace SteamGiveawaysBot.Service
             SteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
             IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
-            if (freeSubIds.Any())
+            if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
             {
                 steamProcessor.ActivatePackages(freeSubIds);
             }
