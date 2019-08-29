@@ -34,7 +34,7 @@ namespace SteamGiveawaysBot
         static string[] UsernameOptions = { "-u", "--user", "--username" };
         static string[] SecretKeyOptions = { "-k", "--ssk", "--key", "--secretkey", "--sharedsecretkey" };
 
-        static TimeSpan RetryDelay => TimeSpan.FromSeconds(10);
+        static TimeSpan RetryDelay => TimeSpan.FromMinutes(5);
 
         static BotSettings botSettings;
         static DebugSettings debugSettings;
@@ -83,14 +83,17 @@ namespace SteamGiveawaysBot
                     {
                         logger.Fatal(Operation.Unknown, OperationStatus.Failure, innerException);
                     }
-
-                    break;
                 }
                 catch (Exception ex)
                 {
                     logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
-                    break;
                 }
+
+                logger.Info(
+                    MyOperation.CrashRecovery,
+                    new LogInfo(MyLogInfoKey.RetryDelay, RetryDelay.TotalMilliseconds));
+                    
+                Thread.Sleep((int)RetryDelay.TotalMilliseconds);
             }
 
             logger.Info(Operation.ShutDown, $"Application stopped");
