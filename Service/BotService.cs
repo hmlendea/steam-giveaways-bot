@@ -21,8 +21,6 @@ namespace SteamGiveawaysBot.Service
 {
     public class BotService : IBotService
     {
-        public bool IsRunning { get; private set; }
-
         readonly DebugSettings debugSettings;
 
         readonly IRewardSender rewardSender;
@@ -50,37 +48,29 @@ namespace SteamGiveawaysBot.Service
 
         public void Run()
         {
-            IsRunning = true;
+            IWebDriver driver = SetupDriver();
 
-            RunLoop();
-        }
-
-        void RunLoop()
-        {
-            while (IsRunning)
+            try
             {
-                IWebDriver driver = SetupDriver();
+                DoStuff(driver);
+            }
+            catch (AccountSuspendedException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                if (debugSettings.IsCrashScreenshotEnabled)
+                {
+                    Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
+                    crashScreenshot.SaveAsFile(debugSettings.CrashScreenshotFilePath);
+                }
 
-                try
-                {
-                    DoStuff(driver);
-                }
-                catch (AccountSuspendedException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    if (debugSettings.IsCrashScreenshotEnabled)
-                    {
-                        Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
-                        crashScreenshot.SaveAsFile(debugSettings.CrashScreenshotFilePath);
-                    }
-                    
-                    driver.Quit();
-
-                    logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
-                }
+                logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
+            }
+            finally
+            {
+                driver.Quit();
             }
         }
 
