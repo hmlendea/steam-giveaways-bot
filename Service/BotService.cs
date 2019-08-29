@@ -60,12 +60,6 @@ namespace SteamGiveawaysBot.Service
             }
             catch (Exception ex)
             {
-                if (debugSettings.IsCrashScreenshotEnabled)
-                {
-                    Screenshot crashScreenshot = ((ITakesScreenshot) driver).GetScreenshot();
-                    crashScreenshot.SaveAsFile(debugSettings.CrashScreenshotFilePath);
-                }
-
                 logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
             }
             finally
