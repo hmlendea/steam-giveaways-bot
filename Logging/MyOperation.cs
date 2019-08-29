@@ -10,6 +10,8 @@ namespace SteamGiveawaysBot.Logging
             
         }
 
+        public static Operation CrashRecovery => new MyOperation(nameof(CrashRecovery));
+
         public static Operation ConfigurationUpdate => new MyOperation(nameof(ConfigurationUpdate));
 
         public static Operation ConnectivityTest => new MyOperation(nameof(ConnectivityTest));
