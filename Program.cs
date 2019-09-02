@@ -118,8 +118,9 @@ namespace SteamGiveawaysBot
             
             IBotService botService = new BotService(
                 steamAccount,
-                debugSettings,
                 rewardSender,
+                botSettings,
+                debugSettings,
                 logger);
 
             botService.Run();

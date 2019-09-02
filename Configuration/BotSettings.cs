@@ -7,5 +7,7 @@ namespace SteamGiveawaysBot.Configuration
         public string Username { get; set; }
 
         public string SharedSecretKey { get; set; }
+        
+        public int PageLoadTimeout { get; set; }
     }
 }
