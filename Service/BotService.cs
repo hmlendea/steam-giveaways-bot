@@ -23,22 +23,23 @@ namespace SteamGiveawaysBot.Service
 {
     public class BotService : IBotService
     {
-        readonly DebugSettings debugSettings;
-
         readonly IRewardSender rewardSender;
-
+        readonly BotSettings botSettings;
+        readonly DebugSettings debugSettings;
         readonly ILogger logger;
 
         readonly AccountDetails account;
 
         public BotService(
             SteamAccount steamAccount,
-            DebugSettings debugSettings,
             IRewardSender rewardSender,
+            BotSettings botSettings,
+            DebugSettings debugSettings,
             ILogger logger)
         {
-            this.debugSettings = debugSettings;
             this.rewardSender = rewardSender;
+            this.botSettings = botSettings;
+            this.debugSettings = debugSettings;
             this.logger = logger;
 
             account = new AccountDetails
@@ -159,7 +160,7 @@ namespace SteamGiveawaysBot.Service
             service.SuppressInitialDiagnosticInformation = true;
             service.HideCommandPromptWindow = true;
 
-            IWebDriver driver = new ChromeDriver(service, options);
+            IWebDriver driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(botSettings.PageLoadTimeout));
             IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
             string userAgent = (string)scriptExecutor.ExecuteScript("return navigator.userAgent;");
 
@@ -172,6 +173,7 @@ namespace SteamGiveawaysBot.Service
                 driver = new ChromeDriver(service, options);
             }
 
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(botSettings.PageLoadTimeout);
             driver.Manage().Window.Maximize();
 
             return driver;
