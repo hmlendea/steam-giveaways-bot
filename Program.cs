@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading;
 
@@ -13,16 +10,8 @@ using NuciLog;
 using NuciLog.Core;
 using NuciSecurity.HMAC;
 
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
-
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Processors;
-using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Service.Models;

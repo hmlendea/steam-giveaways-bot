@@ -1,5 +1,3 @@
-using System;
-
 using NuciExtensions;
 
 namespace SteamGiveawaysBot.Entities

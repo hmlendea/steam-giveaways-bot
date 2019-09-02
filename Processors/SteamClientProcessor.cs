@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Authentication;
 using System.Threading;
-using System.Threading.Tasks;
 
 using NuciExtensions;
 
@@ -13,7 +10,6 @@ using SteamKit2;
 using SteamKit2.Internal;
 
 using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors
 {
