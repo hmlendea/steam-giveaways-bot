@@ -1,5 +1,3 @@
-using System;
-
 namespace SteamGiveawaysBot.Service.Models
 {
     public class Response

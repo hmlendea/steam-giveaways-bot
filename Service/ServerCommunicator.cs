@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using NuciSecurity.HMAC;
 
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Service

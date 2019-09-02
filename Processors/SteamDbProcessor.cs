@@ -9,7 +9,6 @@ using NuciWeb;
 using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors
 {

@@ -1,8 +1,5 @@
-using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-
-using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot.Service
 {
