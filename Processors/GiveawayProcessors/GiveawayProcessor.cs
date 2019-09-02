@@ -185,9 +185,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 logger.Info(
                     MyOperation.JoinGiveaway,
                     OperationStatus.Success,
-                    new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle),
                     new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
                     new LogInfo(MyLogInfoKey.Price, giveaway.Price),
+                    new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle),
                     new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
             }
             catch (UnjoinableGiveawayException ex)
@@ -195,6 +195,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 logger.Warn(
                     MyOperation.JoinGiveaway,
                     OperationStatus.Failure,
+                    new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
                     new LogInfo(MyLogInfoKey.Reason, ex.Reason),
                     new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
             }
