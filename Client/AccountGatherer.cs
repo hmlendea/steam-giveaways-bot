@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 using NuciLog.Core;
 
-using SteamGiveawaysBot.Service.Models;
+using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 
-namespace SteamGiveawaysBot.Service
+namespace SteamGiveawaysBot.Client
 {
     public sealed class AccountGatherer : IAccountGatherer
     {
@@ -27,7 +27,7 @@ namespace SteamGiveawaysBot.Service
             this.logger = logger;
         }
 
-        public async Task<SteamAccount> GatherAccount()
+        public async Task<AccountResponse> GatherAccount()
         {
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
@@ -39,19 +39,14 @@ namespace SteamGiveawaysBot.Service
             AccountResponse response = await serverCommunicator.SendRequest(HttpMethod.Get, endpoint, request);
 
             // TODO: Do the mapping in a dedicated place
-            SteamAccount account = new SteamAccount
-            {
-                Username = response.Username,
-                Password = response.Password
-            };
 
             logger.Debug(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Success,
                 "Account details retrieved successfully",
-                new LogInfo(MyLogInfoKey.Username, account.Username));
+                new LogInfo(MyLogInfoKey.Username, response.Username));
 
-            return account;
+            return response;
         }
 
         AccountRequest BuildRequestObject()

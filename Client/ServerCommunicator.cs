@@ -8,9 +8,9 @@ using Newtonsoft.Json;
 using NuciSecurity.HMAC;
 
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Service.Models;
+using SteamGiveawaysBot.Client.Models;
 
-namespace SteamGiveawaysBot.Service
+namespace SteamGiveawaysBot.Client
 {
     public class ServerCommunicator<TRequest> : IServerCommunicator<TRequest>
         where TRequest : class

@@ -1,8 +1,8 @@
 using NuciSecurity.HMAC;
 
-using SteamGiveawaysBot.Service.Models;
+using SteamGiveawaysBot.Client.Models;
 
-namespace SteamGiveawaysBot.Security
+namespace SteamGiveawaysBot.Client.Security
 {
     public sealed class AccountResponseHmacEncoder : HmacEncoder<AccountResponse>
     {

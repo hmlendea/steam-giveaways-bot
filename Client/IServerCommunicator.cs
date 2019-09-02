@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace SteamGiveawaysBot.Service
+namespace SteamGiveawaysBot.Client
 {
     public interface IServerCommunicator<TRequest>
         where TRequest : class

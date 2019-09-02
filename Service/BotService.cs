@@ -8,6 +8,8 @@ using NuciLog.Core;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
+using SteamGiveawaysBot.Client;
+using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
