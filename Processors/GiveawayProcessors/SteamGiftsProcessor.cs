@@ -7,10 +7,10 @@ using NuciLog.Core;
 
 using OpenQA.Selenium;
 
+using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors

@@ -6,9 +6,9 @@ using NuciLog.Core;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Service.Models;
+using SteamGiveawaysBot.Client.Models;
 
-namespace SteamGiveawaysBot.Service
+namespace SteamGiveawaysBot.Client
 {
     public sealed class RewardSender : IRewardSender
     {

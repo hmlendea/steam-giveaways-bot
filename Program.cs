@@ -10,9 +10,11 @@ using NuciLog;
 using NuciLog.Core;
 using NuciSecurity.HMAC;
 
+using SteamGiveawaysBot.Client;
+using SteamGiveawaysBot.Client.Models;
+using SteamGiveawaysBot.Client.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Security;
 using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Service.Models;
 
@@ -104,7 +106,11 @@ namespace SteamGiveawaysBot
             WaitForInternet();
 
             IAccountGatherer steamAccountGatherer = serviceProvider.GetService<IAccountGatherer>();
-            SteamAccount steamAccount = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
+            AccountResponse steamAccountResponse = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
+
+            SteamAccount steamAccount = new SteamAccount();
+            steamAccount.Username = steamAccountResponse.Username;
+            steamAccount.Password = steamAccountResponse.Password;
 
             IRewardSender rewardSender = serviceProvider.GetService<IRewardSender>();
             ILogger logger = serviceProvider.GetService<ILogger>();

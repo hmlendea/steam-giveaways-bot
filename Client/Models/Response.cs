@@ -1,4 +1,4 @@
-namespace SteamGiveawaysBot.Service.Models
+namespace SteamGiveawaysBot.Client.Models
 {
     public class Response
     {

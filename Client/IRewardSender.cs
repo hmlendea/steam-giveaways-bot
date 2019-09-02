@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 using SteamGiveawaysBot.Entities;
 
-namespace SteamGiveawaysBot.Service
+namespace SteamGiveawaysBot.Client
 {
     public interface IRewardSender
     {
