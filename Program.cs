@@ -16,7 +16,6 @@ using SteamGiveawaysBot.Client.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Service;
-using SteamGiveawaysBot.Service.Models;
 
 namespace SteamGiveawaysBot
 {
@@ -105,24 +104,7 @@ namespace SteamGiveawaysBot
         {
             WaitForInternet();
 
-            IAccountGatherer steamAccountGatherer = serviceProvider.GetService<IAccountGatherer>();
-            AccountResponse steamAccountResponse = steamAccountGatherer.GatherAccount().Result; // TODO: Broken async
-
-            SteamAccount steamAccount = new SteamAccount();
-            steamAccount.Username = steamAccountResponse.Username;
-            steamAccount.Password = steamAccountResponse.Password;
-
-            IRewardSender rewardSender = serviceProvider.GetService<IRewardSender>();
-            ILogger logger = serviceProvider.GetService<ILogger>();
-            logger.SetSourceContext<BotService>();
-            
-            IBotService botService = new BotService(
-                steamAccount,
-                rewardSender,
-                botSettings,
-                debugSettings,
-                logger);
-
+            IBotService botService = serviceProvider.GetService<IBotService>();
             botService.Run();
         }
 

@@ -16,36 +16,44 @@ using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
-using SteamGiveawaysBot.Service.Models;
 using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Service
 {
     public class BotService : IBotService
     {
+        readonly IAccountGatherer accountGatherer;
         readonly IRewardSender rewardSender;
+        
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
+
         readonly ILogger logger;
 
         readonly AccountDetails account;
 
         public BotService(
-            SteamAccount steamAccount,
+            IAccountGatherer accountGatherer,
             IRewardSender rewardSender,
             BotSettings botSettings,
             DebugSettings debugSettings,
             ILogger logger)
         {
+            this.accountGatherer = accountGatherer;
             this.rewardSender = rewardSender;
+
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
+
             this.logger = logger;
+
+            // TODO: Broken async
+            AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
             account = new AccountDetails
             {
-                Username = steamAccount.Username,
-                Password = steamAccount.Password
+                Username = accountResponse.Username,
+                Password = accountResponse.Password
             };
         }
 
