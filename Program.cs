@@ -84,8 +84,6 @@ namespace SteamGiveawaysBot
                     
                 Thread.Sleep((int)RetryDelay.TotalMilliseconds);
             }
-
-            logger.Info(Operation.ShutDown, $"Application stopped");
         }
 
         static void LoadBotCredentials(string[] args)
