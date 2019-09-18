@@ -1,3 +1,5 @@
+using SteamGiveawaysBot.Entities;
+
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public interface IGiveawayProcessor

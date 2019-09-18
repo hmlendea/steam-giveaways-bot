@@ -18,7 +18,10 @@ using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Client.Security;
 using SteamGiveawaysBot.Configuration;
+using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
+using SteamGiveawaysBot.Processors;
+using SteamGiveawaysBot.Processors.GiveawayProcessors;
 using SteamGiveawaysBot.Service;
 using SteamGiveawaysBot.Utils;
 
@@ -34,6 +37,7 @@ namespace SteamGiveawaysBot
         static BotSettings botSettings;
         static DebugSettings debugSettings;
         static NuciLoggerSettings loggingSettings;
+        static AccountDetails accountDetails;
 
         static ILogger logger;
         
@@ -44,6 +48,7 @@ namespace SteamGiveawaysBot
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
             loggingSettings = new NuciLoggerSettings();
+            accountDetails = new AccountDetails();
 
             IConfiguration config = LoadConfiguration();
             config.Bind(nameof(BotSettings), botSettings);
@@ -57,6 +62,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
                 .AddSingleton(loggingSettings)
+                .AddSingleton(accountDetails)
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IHmacEncoder<AccountRequest>, AccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<AccountResponse>, AccountResponseHmacEncoder>()
@@ -66,6 +72,9 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton(webDriver)
+                .AddSingleton<IGiveawayProcessor, SteamGiftsProcessor>()
+                .AddSingleton<ISteamProcessor, SteamProcessor>()
+                .AddSingleton<ISteamDbProcessor, SteamDbProcessor>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 

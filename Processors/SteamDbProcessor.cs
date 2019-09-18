@@ -17,17 +17,15 @@ namespace SteamGiveawaysBot.Processors
         public string HomePageUrl => "https://steamdb.info";
         public string FreePackagesListUrl => $"{HomePageUrl}/freepackages";
 
+        readonly IWebProcessor webProcessor;
         readonly ILogger logger;
-
-        readonly WebProcessor webProcessor;
         
         public SteamDbProcessor(
-            IWebDriver driver,
+            IWebProcessor webProcessor,
             ILogger logger)
         {
+            this.webProcessor = webProcessor;
             this.logger = logger;
-
-            webProcessor = new WebProcessor(driver);
         }
 
         public IEnumerable<uint> GetFreePackagesList()
