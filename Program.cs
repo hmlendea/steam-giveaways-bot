@@ -10,6 +10,7 @@ using NuciLog;
 using NuciLog.Configuration;
 using NuciLog.Core;
 using NuciSecurity.HMAC;
+using NuciWeb;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -72,6 +73,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton(webDriver)
+                .AddTransient<IWebProcessor, WebProcessor>()
                 .AddSingleton<IGiveawayProcessor, SteamGiftsProcessor>()
                 .AddSingleton<ISteamProcessor, SteamProcessor>()
                 .AddSingleton<ISteamDbProcessor, SteamDbProcessor>()
