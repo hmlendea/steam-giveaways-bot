@@ -12,7 +12,7 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Processors
 {
-    public sealed class SteamDbProcessor
+    public sealed class SteamDbProcessor : ISteamDbProcessor
     {
         public string HomePageUrl => "https://steamdb.info";
         public string FreePackagesListUrl => $"{HomePageUrl}/freepackages";

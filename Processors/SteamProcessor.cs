@@ -13,7 +13,7 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Processors
 {
-    public sealed class SteamProcessor
+    public sealed class SteamProcessor : ISteamProcessor
     {
         const int PackagesActivationLimit = 50;
 
