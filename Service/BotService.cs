@@ -24,6 +24,7 @@ namespace SteamGiveawaysBot.Service
     {
         readonly IAccountGatherer accountGatherer;
         readonly IRewardSender rewardSender;
+        readonly IWebDriver webDriver;
         
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
@@ -35,12 +36,14 @@ namespace SteamGiveawaysBot.Service
         public BotService(
             IAccountGatherer accountGatherer,
             IRewardSender rewardSender,
+            IWebDriver webDriver,
             BotSettings botSettings,
             DebugSettings debugSettings,
             ILogger logger)
         {
             this.accountGatherer = accountGatherer;
             this.rewardSender = rewardSender;
+            this.webDriver = webDriver;
 
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
@@ -59,11 +62,9 @@ namespace SteamGiveawaysBot.Service
 
         public void Run()
         {
-            IWebDriver driver = SetupDriver();
-
             try
             {
-                DoStuff(driver);
+                DoStuff();
             }
             catch (AccountSuspendedException)
             {
@@ -73,19 +74,15 @@ namespace SteamGiveawaysBot.Service
             {
                 logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
             }
-            finally
-            {
-                driver.Quit();
-            }
         }
 
-        void DoStuff(IWebDriver driver)
+        void DoStuff()
         {
-            ISteamProcessor steamProcessor = new SteamProcessor(driver, account, logger);
+            ISteamProcessor steamProcessor = new SteamProcessor(webDriver, account, logger);
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            ISteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
+            ISteamDbProcessor steamDbProcessor = new SteamDbProcessor(webDriver, logger);
             IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
             if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
@@ -97,7 +94,7 @@ namespace SteamGiveawaysBot.Service
             PlayGames(ownedAppIds);
 
             IGiveawayProcessor steamGiftsProcessor =
-                new SteamGiftsProcessor(driver, account, rewardSender, logger);
+                new SteamGiftsProcessor(webDriver, account, rewardSender, logger);
 
             try
             {
@@ -141,50 +138,6 @@ namespace SteamGiveawaysBot.Service
             }
 
             logger.Debug(MyOperation.PlayTimeFaking, OperationStatus.Success);
-        }
-
-        IWebDriver SetupDriver()
-        {
-            ChromeOptions options = new ChromeOptions();
-            options.PageLoadStrategy = PageLoadStrategy.None;
-            options.AddArgument("--silent");
-            options.AddArgument("--no-sandbox");
-			options.AddArgument("--disable-translate");
-			options.AddArgument("--disable-infobars");
-
-            if (debugSettings.IsHeadless)
-            {
-                options.AddArgument("--headless");
-                options.AddArgument("--disable-gpu");
-                options.AddArgument("--window-size=1920,1080");
-                options.AddArgument("--start-maximized");
-                options.AddArgument("--blink-settings=imagesEnabled=false");
-                options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
-            }
-
-            options.AddExtension(ApplicationPaths.SteamDbExtensionFilePath);
-
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.SuppressInitialDiagnosticInformation = true;
-            service.HideCommandPromptWindow = true;
-
-            IWebDriver driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(botSettings.PageLoadTimeout));
-            IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
-            string userAgent = (string)scriptExecutor.ExecuteScript("return navigator.userAgent;");
-
-            if (userAgent.Contains("Headless"))
-            {
-                userAgent = userAgent.Replace("Headless", "");
-                options.AddArgument($"--user-agent={userAgent}");
-
-                driver.Quit();
-                driver = new ChromeDriver(service, options);
-            }
-
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(botSettings.PageLoadTimeout);
-            driver.Manage().Window.Maximize();
-
-            return driver;
         }
     }
 }

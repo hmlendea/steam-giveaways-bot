@@ -11,12 +11,16 @@ using NuciLog.Configuration;
 using NuciLog.Core;
 using NuciSecurity.HMAC;
 
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Client.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Service;
+using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot
 {
@@ -47,6 +51,7 @@ namespace SteamGiveawaysBot
             config.Bind(nameof(NuciLoggerSettings), loggingSettings);
 
             LoadBotCredentials(args);
+            IWebDriver webDriver = SetupWebDriver();
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
@@ -60,6 +65,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IServerCommunicator<RecordRewardRequest>, ServerCommunicator<RecordRewardRequest>>()
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
+                .AddSingleton(webDriver)
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 
@@ -82,6 +88,10 @@ namespace SteamGiveawaysBot
                 catch (Exception ex)
                 {
                     logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
+                }
+                finally
+                {
+                    webDriver.Quit();
                 }
 
                 logger.Info(
@@ -147,6 +157,50 @@ namespace SteamGiveawaysBot
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
+        }
+
+        static IWebDriver SetupWebDriver()
+        {
+            ChromeOptions options = new ChromeOptions();
+            options.PageLoadStrategy = PageLoadStrategy.None;
+            options.AddArgument("--silent");
+            options.AddArgument("--no-sandbox");
+			options.AddArgument("--disable-translate");
+			options.AddArgument("--disable-infobars");
+
+            if (debugSettings.IsHeadless)
+            {
+                options.AddArgument("--headless");
+                options.AddArgument("--disable-gpu");
+                options.AddArgument("--window-size=1920,1080");
+                options.AddArgument("--start-maximized");
+                options.AddArgument("--blink-settings=imagesEnabled=false");
+                options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
+            }
+
+            options.AddExtension(ApplicationPaths.SteamDbExtensionFilePath);
+
+            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+            service.SuppressInitialDiagnosticInformation = true;
+            service.HideCommandPromptWindow = true;
+
+            IWebDriver driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(botSettings.PageLoadTimeout));
+            IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
+            string userAgent = (string)scriptExecutor.ExecuteScript("return navigator.userAgent;");
+
+            if (userAgent.Contains("Headless"))
+            {
+                userAgent = userAgent.Replace("Headless", "");
+                options.AddArgument($"--user-agent={userAgent}");
+
+                driver.Quit();
+                driver = new ChromeDriver(service, options);
+            }
+
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(botSettings.PageLoadTimeout);
+            driver.Manage().Window.Maximize();
+
+            return driver;
         }
     }
 }
