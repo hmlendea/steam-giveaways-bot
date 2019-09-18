@@ -25,10 +25,9 @@ namespace SteamGiveawaysBot.Processors
         public string LicensesUrl => $"{AccountUrl}/licenses/";
         public string AddFreeLicenseUrlFormat => HomePageUrl + "/checkout/addfreelicense/{0}";
 
+        readonly IWebProcessor webProcessor;
         readonly AccountDetails account;
         readonly ILogger logger;
-
-        readonly WebProcessor webProcessor;
 
         string ProfileUrl => $"https://steamcommunity.com/id/{account.Username}";
         string EditProfileUrl => $"https://steamcommunity.com/id/{account.Username}/edit";
@@ -37,14 +36,13 @@ namespace SteamGiveawaysBot.Processors
         string GamesUrl => $"{ProfileUrl}/games/?tab=all";
 
         public SteamProcessor(
-            IWebDriver driver,
+            IWebProcessor webProcessor,
             AccountDetails account,
             ILogger logger)
         {
+            this.webProcessor = webProcessor;
             this.account = account;
             this.logger = logger;
-
-            webProcessor = new WebProcessor(driver);
         }
 
         public void Quit()

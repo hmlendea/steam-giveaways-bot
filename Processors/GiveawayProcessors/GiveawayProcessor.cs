@@ -47,28 +47,26 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public TimeSpan DefaultWaitDuration => TimeSpan.FromMinutes(5);
 
-        protected AccountDetails account;
-
         protected Giveaway LastProcessedGiveaway;
 
-        protected WebProcessor webProcessor;
-
-        protected ILogger logger;
+        protected readonly IWebProcessor webProcessor;
+        protected readonly AccountDetails accountDetails;
+        protected readonly ILogger logger;
 
         DateTime LastRewardsChekingDate { get; set; }
 
         TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
 
         public GiveawayProcessor(
-            IWebDriver driver,
-            AccountDetails account,
+            IWebProcessor webProcessor,
+            AccountDetails accountDetails,
             ILogger logger)
         {
-            this.account = account;
+            this.webProcessor = webProcessor;
+            this.accountDetails = accountDetails;
             this.logger = logger;
 
             IsRegistered = true;
-            webProcessor = new WebProcessor(driver);
         }
 
         public void Quit()
@@ -103,7 +101,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Info(
                 MyOperation.BotStop,
                 new LogInfo(MyLogInfoKey.GiveawayProcessor, GetType().Name),
-                new LogInfo(MyLogInfoKey.Username, account.Username));
+                new LogInfo(MyLogInfoKey.Username, accountDetails.Username));
 
             IsRunning = false;
         }
@@ -130,7 +128,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (IsSuspended)
                 {
-                    throw new AccountSuspendedException(account.Username);
+                    throw new AccountSuspendedException(accountDetails.Username);
                 }
 
                 if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)

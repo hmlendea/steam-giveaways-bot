@@ -24,7 +24,10 @@ namespace SteamGiveawaysBot.Service
     {
         readonly IAccountGatherer accountGatherer;
         readonly IRewardSender rewardSender;
-        readonly IWebDriver webDriver;
+        
+        readonly IGiveawayProcessor giveawayProcessor;
+        readonly ISteamProcessor steamProcessor;
+        readonly ISteamDbProcessor steamDbProcessor;
         
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
@@ -36,14 +39,19 @@ namespace SteamGiveawaysBot.Service
         public BotService(
             IAccountGatherer accountGatherer,
             IRewardSender rewardSender,
-            IWebDriver webDriver,
+            IGiveawayProcessor giveawayProcessor,
+            ISteamProcessor steamProcessor,
+            ISteamDbProcessor steamDbProcessor,
             BotSettings botSettings,
             DebugSettings debugSettings,
             ILogger logger)
         {
             this.accountGatherer = accountGatherer;
             this.rewardSender = rewardSender;
-            this.webDriver = webDriver;
+            
+            this.giveawayProcessor = giveawayProcessor;
+            this.steamProcessor = steamProcessor;
+            this.steamDbProcessor = steamDbProcessor;
 
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
@@ -78,11 +86,9 @@ namespace SteamGiveawaysBot.Service
 
         void DoStuff()
         {
-            ISteamProcessor steamProcessor = new SteamProcessor(webDriver, account, logger);
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            ISteamDbProcessor steamDbProcessor = new SteamDbProcessor(webDriver, logger);
             IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
             if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
@@ -93,27 +99,24 @@ namespace SteamGiveawaysBot.Service
             IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
             PlayGames(ownedAppIds);
 
-            IGiveawayProcessor steamGiftsProcessor =
-                new SteamGiftsProcessor(webDriver, account, rewardSender, logger);
-
             try
             {
-                steamGiftsProcessor.LogIn();
+                giveawayProcessor.LogIn();
             }
             catch (AccountNotRegisteredException)
             {
                 steamProcessor.GatherProfileInformation();
                 steamProcessor.UpdatePrivacySettings();
                 
-                steamGiftsProcessor.Register();
-                steamGiftsProcessor.ApplyCustomSettings();
+                giveawayProcessor.Register();
+                giveawayProcessor.ApplyCustomSettings();
             }
             
             steamProcessor.Quit();
 
-            steamGiftsProcessor.Run();
-            steamGiftsProcessor.Stop();
-            steamGiftsProcessor.Quit();
+            giveawayProcessor.Run();
+            giveawayProcessor.Stop();
+            giveawayProcessor.Quit();
         }
 
         void PlayGames(IEnumerable<uint> appIds)

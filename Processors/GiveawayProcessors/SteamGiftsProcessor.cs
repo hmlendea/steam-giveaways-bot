@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 using NuciLog.Core;
+using NuciWeb;
 
 using OpenQA.Selenium;
 
@@ -32,11 +33,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         IRewardSender rewardSender;
 
         public SteamGiftsProcessor(
-            IWebDriver driver,
-            AccountDetails account,
+            IWebProcessor webProcessor,
             IRewardSender rewardSender,
+            AccountDetails accountDetails,
             ILogger logger)
-            : base(driver, account, logger)
+            : base(webProcessor, accountDetails, logger)
         {
             MinimumPoints = 20;
             MaximumPoints = 400;
@@ -70,16 +71,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 throw new AccountRegistrationException("Cannot register on SteamGifts due to invalid Steam privacy settings");
             }
 
-            webProcessor.SetText(usernameTextBoxSelector, account.Username);
-            webProcessor.SetText(emailTextBoxSelector, account.EmailAddress);
-            webProcessor.SelectOptionByValue(countryDropDownSelector, account.Country.SgCode.ToString());
+            webProcessor.SetText(usernameTextBoxSelector, accountDetails.Username);
+            webProcessor.SetText(emailTextBoxSelector, accountDetails.EmailAddress);
+            webProcessor.SelectOptionByValue(countryDropDownSelector, accountDetails.Country.SgCode.ToString());
             
             webProcessor.Click(noEmailsRadioButton1Selector);
             webProcessor.Click(noEmailsRadioButton2Selector);
 
             webProcessor.Click(registerButtonSelector);
 
-            account.IsRegisteredSteamGifts = true;
+            accountDetails.IsRegisteredSteamGifts = true;
         }
 
         public override void LogIn()
@@ -87,7 +88,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Info(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username,  account.Username));
+                new LogInfo(MyLogInfoKey.Username,  accountDetails.Username));
 
             webProcessor.GoToUrl(LogInUrl);
 
@@ -109,7 +110,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     webProcessor.Wait(TimeSpan.FromSeconds(30));
                 }
 
-                throw new AccountNotRegisteredException(account.Username);
+                throw new AccountNotRegisteredException(accountDetails.Username);
             }
 
             IsLoggedIn = true;
@@ -272,7 +273,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 Reward reward = new Reward();
                 reward.GiveawaysProvider = ProviderName;
                 reward.GiveawayId  = giveawayUrlFields[giveawayUrlFields.Length - 2];
-                reward.WinnerUsername = account.Username;
+                reward.WinnerUsername = accountDetails.Username;
                 reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
                 reward.ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text");
 
