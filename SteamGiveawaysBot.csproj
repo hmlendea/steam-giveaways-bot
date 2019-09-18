@@ -17,7 +17,7 @@
     <PackageReference Include="NuciLog" Version="1.1.0" />
     <PackageReference Include="NuciLog.Core" Version="2.2.5" />
     <PackageReference Include="NuciSecurity.HMAC" Version="1.0.0" />
-    <PackageReference Include="NuciWeb" Version="1.1.4" />
+    <PackageReference Include="NuciWeb" Version="2.0.1" />
     <PackageReference Include="Selenium.Support" Version="3.141.0" />
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
     <PackageReference Include="SteamKit2" Version="2.2.0" />

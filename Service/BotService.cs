@@ -112,11 +112,11 @@ namespace SteamGiveawaysBot.Service
                 steamGiftsProcessor.ApplyCustomSettings();
             }
             
-            steamProcessor.Dispose();
+            steamProcessor.Quit();
 
             steamGiftsProcessor.Run();
             steamGiftsProcessor.Stop();
-            steamGiftsProcessor.Dispose();
+            steamGiftsProcessor.Quit();
         }
 
         void PlayGames(IEnumerable<uint> appIds)

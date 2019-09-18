@@ -11,7 +11,7 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
-    public abstract class GiveawayProcessor : WebProcessor
+    public abstract class GiveawayProcessor
     {
         public abstract string ProviderName { get; }
 
@@ -51,6 +51,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected Giveaway LastProcessedGiveaway;
 
+        protected WebProcessor webProcessor;
+
         protected ILogger logger;
 
         DateTime LastRewardsChekingDate { get; set; }
@@ -61,12 +63,17 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             IWebDriver driver,
             AccountDetails account,
             ILogger logger)
-            : base(driver)
         {
             this.account = account;
             this.logger = logger;
 
             IsRegistered = true;
+            webProcessor = new WebProcessor(driver);
+        }
+
+        public void Quit()
+        {
+            webProcessor.Dispose();
         }
 
         public void Run()
@@ -153,7 +160,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }
 
-                Wait(NextCheckTime);
+                webProcessor.Wait(NextCheckTime);
             }
         }
 
