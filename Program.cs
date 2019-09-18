@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using NuciCLI;
 using NuciLog;
+using NuciLog.Configuration;
 using NuciLog.Core;
 using NuciSecurity.HMAC;
 
@@ -28,6 +29,7 @@ namespace SteamGiveawaysBot
 
         static BotSettings botSettings;
         static DebugSettings debugSettings;
+        static NuciLoggerSettings loggingSettings;
 
         static ILogger logger;
         
@@ -37,15 +39,19 @@ namespace SteamGiveawaysBot
         {
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
+            loggingSettings = new NuciLoggerSettings();
 
             IConfiguration config = LoadConfiguration();
-            config.Bind(nameof(botSettings), botSettings);
+            config.Bind(nameof(BotSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
+            config.Bind(nameof(NuciLoggerSettings), loggingSettings);
+
             LoadBotCredentials(args);
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
+                .AddSingleton(loggingSettings)
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IHmacEncoder<AccountRequest>, AccountRequestHmacEncoder>()
                 .AddSingleton<IHmacEncoder<AccountResponse>, AccountResponseHmacEncoder>()
@@ -58,7 +64,6 @@ namespace SteamGiveawaysBot
                 .BuildServiceProvider();
 
             logger = serviceProvider.GetService<ILogger>();
-            logger.SetSourceContext<Program>();
             logger.Info(Operation.StartUp, $"Application started");
 
             while (true)
