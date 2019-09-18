@@ -31,10 +31,9 @@ namespace SteamGiveawaysBot.Service
         
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
+        readonly AccountDetails accountDetails;
 
         readonly ILogger logger;
-
-        readonly AccountDetails account;
 
         public BotService(
             IAccountGatherer accountGatherer,
@@ -44,6 +43,7 @@ namespace SteamGiveawaysBot.Service
             ISteamDbProcessor steamDbProcessor,
             BotSettings botSettings,
             DebugSettings debugSettings,
+            AccountDetails accountDetails,
             ILogger logger)
         {
             this.accountGatherer = accountGatherer;
@@ -55,23 +55,21 @@ namespace SteamGiveawaysBot.Service
 
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
+            this.accountDetails = accountDetails;
 
             this.logger = logger;
-
-            // TODO: Broken async
-            AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
-
-            account = new AccountDetails
-            {
-                Username = accountResponse.Username,
-                Password = accountResponse.Password
-            };
         }
 
         public void Run()
         {
             try
             {
+                // TODO: Broken async
+                AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
+
+                this.accountDetails.Username = accountResponse.Username;
+                this.accountDetails.Password = accountResponse.Password;
+
                 DoStuff();
             }
             catch (AccountSuspendedException)
@@ -89,15 +87,15 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
+            //IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
-            if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
-            {
-                steamProcessor.ActivatePackages(freeSubIds);
-            }
+            //if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
+            //{
+            //    steamProcessor.ActivatePackages(freeSubIds);
+            //}
 
-            IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
-            PlayGames(ownedAppIds);
+            //IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
+            //PlayGames(ownedAppIds);
 
             try
             {
@@ -106,7 +104,7 @@ namespace SteamGiveawaysBot.Service
             catch (AccountNotRegisteredException)
             {
                 steamProcessor.GatherProfileInformation();
-                steamProcessor.UpdatePrivacySettings();
+                //steamProcessor.UpdatePrivacySettings();
                 
                 giveawayProcessor.Register();
                 giveawayProcessor.ApplyCustomSettings();
@@ -127,13 +125,13 @@ namespace SteamGiveawaysBot.Service
             logger.Info(
                 MyOperation.PlayTimeFaking,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username, account.Username),
+                new LogInfo(MyLogInfoKey.Username, accountDetails.Username),
                 new LogInfo(MyLogInfoKey.OwnedGamesCount, gamesCount),
                 new LogInfo(MyLogInfoKey.GamesCount, gamesToPlayCount));
                 
             List<uint> appIdsToPlay = appIds.ToList().Shuffle().Take(gamesToPlayCount).ToList();
 
-            using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(account))
+            using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(accountDetails))
             {
                 steamClientProcessor.LogIn();
                 steamClientProcessor.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
