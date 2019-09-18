@@ -12,19 +12,22 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Processors
 {
-    public sealed class SteamDbProcessor : WebProcessor
+    public sealed class SteamDbProcessor
     {
         public string HomePageUrl => "https://steamdb.info";
         public string FreePackagesListUrl => $"{HomePageUrl}/freepackages";
 
-        ILogger logger;
+        readonly ILogger logger;
+
+        readonly WebProcessor webProcessor;
         
         public SteamDbProcessor(
             IWebDriver driver,
             ILogger logger)
-            : base(driver)
         {
             this.logger = logger;
+
+            webProcessor = new WebProcessor(driver);
         }
 
         public IEnumerable<uint> GetFreePackagesList()
@@ -33,7 +36,7 @@ namespace SteamGiveawaysBot.Processors
                 MyOperation.FreePackagesRetrieval,
                 OperationStatus.Started);
 
-            GoToUrl(FreePackagesListUrl);
+            webProcessor.GoToUrl(FreePackagesListUrl);
 
             IEnumerable<uint> subIds = null;
             
@@ -66,9 +69,9 @@ namespace SteamGiveawaysBot.Processors
             By freePackagesBoxSelector = By.Id("freepackages");
             By packageSelector = By.ClassName("package");
 
-            WaitForAnyElementToBeVisible(freePackagesBoxSelector, captchaSelector);
+            webProcessor.WaitForAnyElementToBeVisible(freePackagesBoxSelector, captchaSelector);
 
-            if (DoesElementExist(captchaSelector))
+            if (webProcessor.DoesElementExist(captchaSelector))
             {
                 logger.Debug(
                     MyOperation.FreePackagesRetrieval,
@@ -78,10 +81,10 @@ namespace SteamGiveawaysBot.Processors
                 return new List<uint>();
             }
 
-            WaitForElementToExist(packageSelector);
-            Wait(TimeSpan.FromSeconds(3));
+            webProcessor.WaitForElementToExist(packageSelector);
+            webProcessor.Wait(TimeSpan.FromSeconds(3));
             
-            string pageSource = GetPageSource();
+            string pageSource = webProcessor.GetPageSource();
             IEnumerable<uint> subIds = GetSubIdsFromSource(pageSource);
 
             return subIds;
