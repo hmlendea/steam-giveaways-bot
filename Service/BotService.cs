@@ -81,11 +81,11 @@ namespace SteamGiveawaysBot.Service
 
         void DoStuff(IWebDriver driver)
         {
-            SteamProcessor steamProcessor = new SteamProcessor(driver, account, logger);
+            ISteamProcessor steamProcessor = new SteamProcessor(driver, account, logger);
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            SteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
+            ISteamDbProcessor steamDbProcessor = new SteamDbProcessor(driver, logger);
             IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
             if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
@@ -96,7 +96,7 @@ namespace SteamGiveawaysBot.Service
             IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
             PlayGames(ownedAppIds);
 
-            SteamGiftsProcessor steamGiftsProcessor =
+            IGiveawayProcessor steamGiftsProcessor =
                 new SteamGiftsProcessor(driver, account, rewardSender, logger);
 
             try

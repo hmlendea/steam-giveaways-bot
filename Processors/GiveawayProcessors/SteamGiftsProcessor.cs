@@ -117,7 +117,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Debug(MyOperation.SteamGiftsLogIn, OperationStatus.Success);
         }
 
-        public void ApplyCustomSettings()
+        public override void ApplyCustomSettings()
         {
             webProcessor.GoToUrl(SettingsUrl);
 
