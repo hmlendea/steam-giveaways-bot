@@ -31,8 +31,8 @@ namespace SteamGiveawaysBot.Processors
         readonly ILogger logger;
 
         string ProfileUrl => $"https://steamcommunity.com/id/{account.Username}";
-        string EditProfileUrl => $"https://steamcommunity.com/id/{account.Username}/edit";
-        string PrivacySettingsUrl => $"{ProfileUrl}/edit/settings";
+        string EditProfileUrl => $"{ProfileUrl}/edit";
+        string PrivacySettingsUrl => $"{EditProfileUrl}/settings";
         string BadgesUrl => $"{ProfileUrl}/badges";
         string GamesUrl => $"{ProfileUrl}/games/?tab=all";
 
