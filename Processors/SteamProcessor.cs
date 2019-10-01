@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication;
 
 using NuciExtensions;
 using NuciLog.Core;
@@ -61,14 +62,26 @@ namespace SteamGiveawaysBot.Processors
 
             By usernameSelector = By.Id("input_username");
             By passwordSelector = By.Id("input_password");
+            By captchaInputSelector = By.Id("input_captcha");
+            By logInButtonSelector = By.XPath(@"//*[@id='login_btn_signin']/button");
+            By steamGuardCodeInputSelector = By.Id("twofactorcode_entry");
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");
+            
+            if (webProcessor.IsElementVisible(captchaInputSelector))
+            {
+                ThrowLogInException("Captcha input required");
+            }
 
             webProcessor.SetText(usernameSelector, account.Username);
             webProcessor.SetText(passwordSelector, account.Password);
             
-            webProcessor.Click(By.XPath(@"//*[@id='login_btn_signin']/button"));
-            
-            webProcessor.WaitForElementToExist(avatarSelector);
+            webProcessor.Click(logInButtonSelector);
+            webProcessor.WaitForAnyElementToBeVisible(steamGuardCodeInputSelector, avatarSelector);
+
+            if (webProcessor.IsElementVisible(steamGuardCodeInputSelector))
+            {
+                ThrowLogInException("SteamGuard input required");
+            }
 
             logger.Debug(
                 MyOperation.SteamLogIn,
@@ -222,6 +235,19 @@ namespace SteamGiveawaysBot.Processors
             string countryCode = countryFlagUrlFields[countryFlagUrlFields.Length - 1].Substring(0, 2);
 
             return Country.FromSteamCode(countryCode);
+        }
+
+        void ThrowLogInException(string message)
+        {
+            Exception ex = new AuthenticationException(message);
+
+            logger.Error(
+                MyOperation.SteamLogIn,
+                OperationStatus.Failure,
+                ex,
+                new LogInfo(MyLogInfoKey.Username, account.Username));
+
+            throw ex;
         }
     }
 }
