@@ -3,8 +3,6 @@ using System;
 using NuciLog.Core;
 using NuciWeb;
 
-using OpenQA.Selenium;
-
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
@@ -76,8 +74,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public void Run()
         {
-            //Log.Info($"Starting {GetType().Name} bot for {account.Username}");
-
             CurrentPoints = MaximumPoints;
             IsRunning = true;
 
