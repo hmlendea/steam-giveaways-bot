@@ -87,15 +87,15 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            //IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
+            IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
             
-            //if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
-            //{
-            //    steamProcessor.ActivatePackages(freeSubIds);
-            //}
+            if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
+            {
+                steamProcessor.ActivatePackages(freeSubIds);
+            }
 
-            //IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
-            //PlayGames(ownedAppIds);
+            IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
+            PlayGames(ownedAppIds);
 
             try
             {
@@ -104,7 +104,7 @@ namespace SteamGiveawaysBot.Service
             catch (AccountNotRegisteredException)
             {
                 steamProcessor.GatherProfileInformation();
-                //steamProcessor.UpdatePrivacySettings();
+                steamProcessor.UpdatePrivacySettings();
                 
                 giveawayProcessor.Register();
                 giveawayProcessor.ApplyCustomSettings();
