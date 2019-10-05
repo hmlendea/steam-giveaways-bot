@@ -100,10 +100,6 @@ namespace SteamGiveawaysBot
                 {
                     logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
                 }
-                finally
-                {
-                    webDriver.Quit();
-                }
 
                 logger.Info(
                     MyOperation.CrashRecovery,

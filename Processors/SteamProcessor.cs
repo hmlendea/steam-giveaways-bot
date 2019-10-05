@@ -46,11 +46,6 @@ namespace SteamGiveawaysBot.Processors
             this.logger = logger;
         }
 
-        public void Quit()
-        {
-            webProcessor.Dispose();
-        }
-
         public void LogIn()
         {
             logger.Info(
@@ -66,6 +61,16 @@ namespace SteamGiveawaysBot.Processors
             By logInButtonSelector = By.XPath(@"//*[@id='login_btn_signin']/button");
             By steamGuardCodeInputSelector = By.Id("twofactorcode_entry");
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");
+
+            if (webProcessor.IsElementVisible(avatarSelector))
+            {
+                logger.Debug(
+                    MyOperation.SteamLogIn,
+                    OperationStatus.Success,
+                    "Already logged in");
+
+                return;
+            }
             
             if (webProcessor.IsElementVisible(captchaInputSelector))
             {

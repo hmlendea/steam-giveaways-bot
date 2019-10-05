@@ -94,6 +94,18 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             By privacyScreenshotSelector = By.ClassName("form__screenshot");
             By usernameTextBoxSelector = By.XPath(@"//form/div[1]/div[2]/input");
+            By pointsSelector = By.ClassName("nav__points");
+
+            if (webProcessor.IsElementVisible(pointsSelector))
+            {
+                IsLoggedIn = true;
+                logger.Debug(
+                    MyOperation.SteamGiftsLogIn,
+                    OperationStatus.Success,
+                    "Already logged in");
+
+                return;
+            }
 
             webProcessor.Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
             webProcessor.Click(By.Id("imageLogin"));

@@ -4,8 +4,6 @@ namespace SteamGiveawaysBot.Processors
 {
     public interface ISteamProcessor
     {
-        void Quit();
-
         void LogIn();
 
         void VisitChat();
