@@ -1,11 +1,7 @@
-using SteamGiveawaysBot.Entities;
-
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
     public interface IGiveawayProcessor
     {
-        void Quit();
-
         void Run();
 
         void Stop();

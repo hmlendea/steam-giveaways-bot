@@ -67,11 +67,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             IsRegistered = true;
         }
 
-        public void Quit()
-        {
-            webProcessor.Dispose();
-        }
-
         public void Run()
         {
             CurrentPoints = MaximumPoints;

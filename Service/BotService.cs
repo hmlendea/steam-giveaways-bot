@@ -106,11 +106,8 @@ namespace SteamGiveawaysBot.Service
                 giveawayProcessor.ApplyCustomSettings();
             }
             
-            steamProcessor.Quit();
-
             giveawayProcessor.Run();
             giveawayProcessor.Stop();
-            giveawayProcessor.Quit();
         }
 
         void PlayGames(IEnumerable<uint> appIds)
