@@ -72,6 +72,13 @@ namespace SteamGiveawaysBot.Service
             {
                 throw;
             }
+            catch (AggregateException ex)
+            {
+                foreach (Exception innerException in ex.InnerExceptions)
+                {
+                    logger.Error(Operation.Unknown, OperationStatus.Failure, innerException);
+                }
+            }
             catch (Exception ex)
             {
                 logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
