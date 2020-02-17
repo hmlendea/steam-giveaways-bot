@@ -76,7 +76,6 @@ namespace SteamGiveawaysBot
                 .AddTransient<IWebProcessor, WebProcessor>()
                 .AddSingleton<IGiveawayProcessor, SteamGiftsProcessor>()
                 .AddSingleton<ISteamProcessor, SteamProcessor>()
-                .AddSingleton<ISteamDbProcessor, SteamDbProcessor>()
                 .AddSingleton<IBotService, BotService>()
                 .BuildServiceProvider();
 

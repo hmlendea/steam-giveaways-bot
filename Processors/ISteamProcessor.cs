@@ -13,7 +13,5 @@ namespace SteamGiveawaysBot.Processors
         void UpdatePrivacySettings();
 
         IEnumerable<uint> GatherOwnedGames();
-
-        void ActivatePackages(IEnumerable<uint> subIds);
     }
 }
