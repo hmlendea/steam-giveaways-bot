@@ -23,7 +23,6 @@ namespace SteamGiveawaysBot.Service
         
         readonly IGiveawayProcessor giveawayProcessor;
         readonly ISteamProcessor steamProcessor;
-        readonly ISteamDbProcessor steamDbProcessor;
         
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
@@ -36,7 +35,6 @@ namespace SteamGiveawaysBot.Service
             IRewardSender rewardSender,
             IGiveawayProcessor giveawayProcessor,
             ISteamProcessor steamProcessor,
-            ISteamDbProcessor steamDbProcessor,
             BotSettings botSettings,
             DebugSettings debugSettings,
             AccountDetails accountDetails,
@@ -47,7 +45,6 @@ namespace SteamGiveawaysBot.Service
             
             this.giveawayProcessor = giveawayProcessor;
             this.steamProcessor = steamProcessor;
-            this.steamDbProcessor = steamDbProcessor;
 
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
@@ -89,13 +86,6 @@ namespace SteamGiveawaysBot.Service
         {
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
-
-            IEnumerable<uint> freeSubIds = steamDbProcessor.GetFreePackagesList();
-            
-            if (!EnumerableExt.IsNullOrEmpty(freeSubIds))
-            {
-                steamProcessor.ActivatePackages(freeSubIds);
-            }
 
             IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
             PlayGames(ownedAppIds);
