@@ -184,8 +184,6 @@ namespace SteamGiveawaysBot
                 options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
             }
 
-            options.AddExtension(ApplicationPaths.SteamDbExtensionFilePath);
-
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.SuppressInitialDiagnosticInformation = true;
             service.HideCommandPromptWindow = true;
