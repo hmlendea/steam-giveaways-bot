@@ -175,17 +175,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             for (int i = 1; i <= 50; i++)
             {
+                By pinnedGiveawaysWrapSelector = By.ClassName("pinned-giveaways__outer-wrap");
                 string baseXpath = "//div[@class='page__inner-wrap']/div[@class='widget-container']/div[2]";
-                int baseXpathFindingsCount = webProcessor.GetElements(By.XPath($"{baseXpath}/div")).Count();
 
-                // TODO: A more proper fix
-                if (baseXpathFindingsCount == 7)
+                if (webProcessor.DoesElementExist(pinnedGiveawaysWrapSelector))
                 {
-                    baseXpath += "/div[2]";
+                    baseXpath += "/div[3]";
                 }
                 else
                 {
-                    baseXpath += "/div[3]";
+                    baseXpath += "/div[2]";
                 }
 
                 By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
