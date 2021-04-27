@@ -87,8 +87,10 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            IEnumerable<uint> ownedAppIds = steamProcessor.GatherOwnedGames();
-            PlayGames(ownedAppIds);
+            if (botSettings.IsPlayTimeFakingEnabled)
+            {
+                PlayGames();
+            }
 
             try
             {
@@ -107,25 +109,28 @@ namespace SteamGiveawaysBot.Service
             giveawayProcessor.Stop();
         }
 
-        void PlayGames(IEnumerable<uint> appIds)
+        void PlayGames()
         {
-            int gamesCount = appIds.Count();
-            int gamesToPlayCount = (int)((float)gamesCount * 0.50f);
+            IList<uint> appIds = steamProcessor.GatherOwnedGames().ToList();
+            int gamesToPlayCount = (int)((float)appIds.Count * 0.50f);
 
             logger.Info(
                 MyOperation.PlayTimeFaking,
                 OperationStatus.Started,
                 new LogInfo(MyLogInfoKey.Username, accountDetails.Username),
-                new LogInfo(MyLogInfoKey.OwnedGamesCount, gamesCount),
+                new LogInfo(MyLogInfoKey.OwnedGamesCount, appIds.Count),
                 new LogInfo(MyLogInfoKey.GamesCount, gamesToPlayCount));
                 
-            List<uint> appIdsToPlay = appIds.ToList().Shuffle().Take(gamesToPlayCount).ToList();
+            List<uint> appIdsToPlay = appIds
+                .Shuffle()
+                .Take(gamesToPlayCount)
+                .ToList();
 
-            using (SteamClientProcessor steamClientProcessor = new SteamClientProcessor(accountDetails))
+            using (var client = new SteamClientProcessor(accountDetails))
             {
-                steamClientProcessor.LogIn();
-                steamClientProcessor.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
-                steamClientProcessor.LogOut();
+                client.LogIn();
+                client.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
+                client.LogOut();
             }
 
             logger.Debug(MyOperation.PlayTimeFaking, OperationStatus.Success);
