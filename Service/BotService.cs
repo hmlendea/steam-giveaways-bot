@@ -87,11 +87,6 @@ namespace SteamGiveawaysBot.Service
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
 
-            if (botSettings.IsPlayTimeFakingEnabled)
-            {
-                PlayGames();
-            }
-
             try
             {
                 giveawayProcessor.LogIn();
@@ -107,33 +102,6 @@ namespace SteamGiveawaysBot.Service
             
             giveawayProcessor.Run();
             giveawayProcessor.Stop();
-        }
-
-        void PlayGames()
-        {
-            IList<uint> appIds = steamProcessor.GatherOwnedGames().ToList();
-            int gamesToPlayCount = (int)((float)appIds.Count * 0.50f);
-
-            logger.Info(
-                MyOperation.PlayTimeFaking,
-                OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username, accountDetails.Username),
-                new LogInfo(MyLogInfoKey.OwnedGamesCount, appIds.Count),
-                new LogInfo(MyLogInfoKey.GamesCount, gamesToPlayCount));
-                
-            List<uint> appIdsToPlay = appIds
-                .Shuffle()
-                .Take(gamesToPlayCount)
-                .ToList();
-
-            using (var client = new SteamClientProcessor(accountDetails))
-            {
-                client.LogIn();
-                client.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
-                client.LogOut();
-            }
-
-            logger.Debug(MyOperation.PlayTimeFaking, OperationStatus.Success);
         }
     }
 }
