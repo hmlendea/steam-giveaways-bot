@@ -59,6 +59,7 @@ namespace SteamGiveawaysBot.Processors
             By passwordSelector = By.Id("input_password");
             By captchaInputSelector = By.Id("input_captcha");
             By logInButtonSelector = By.XPath(@"//*[@id='login_btn_signin']/button");
+            By errorBoxSelector = By.Id("error_display");
             By steamGuardCodeInputSelector = By.Id("twofactorcode_entry");
             By avatarSelector = By.XPath(@"//a[contains(@class,'playerAvatar')]");
 
@@ -81,11 +82,26 @@ namespace SteamGiveawaysBot.Processors
             webProcessor.SetText(passwordSelector, account.Password);
             
             webProcessor.Click(logInButtonSelector);
-            webProcessor.WaitForAnyElementToBeVisible(steamGuardCodeInputSelector, avatarSelector);
+            webProcessor.WaitForAnyElementToBeVisible(
+                steamGuardCodeInputSelector,
+                errorBoxSelector,
+                avatarSelector);
 
             if (webProcessor.IsElementVisible(steamGuardCodeInputSelector))
             {
                 ThrowLogInException("SteamGuard input required");
+            }
+            
+            if (webProcessor.IsElementVisible(errorBoxSelector))
+            {
+                string errorMessage = webProcessor.GetText(errorBoxSelector);
+
+                logger.Error(
+                    MyOperation.SteamLogIn,
+                    OperationStatus.Failure,
+                    "Log in failed");
+
+                throw new AuthenticationException(errorMessage);
             }
 
             logger.Debug(
