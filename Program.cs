@@ -95,15 +95,13 @@ namespace SteamGiveawaysBot
                     {
                         logger.Fatal(Operation.Unknown, OperationStatus.Failure, innerException);
                     }
-
-                    SaveCrashScreenshot();
                 }
                 catch (Exception ex)
                 {
                     logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
-
-                    SaveCrashScreenshot();
                 }
+
+                SaveCrashScreenshot();
 
                 logger.Info(
                     MyOperation.CrashRecovery,
