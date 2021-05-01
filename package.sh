@@ -36,7 +36,6 @@ function dotnet-pub {
     dotnet publish -c Release -r "$ARCH" -o "$OUTPUT_DIR" --self-contained=true /p:TrimUnusedDependencies=true /p:LinkDuringPublish=true
 }
 
-
 function cleanup {
     echo "Cleaning build output"
     rm -rf "$PUBLISH_DIR"

@@ -69,12 +69,16 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 return;
             }
 
+            AcceptCookies();
+
             webProcessor.Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
             webProcessor.Click(By.Id("imageLogin"));
 
             webProcessor.WaitForElementToExist(By.ClassName("nav__left-container"), false);
 
-            if (webProcessor.DoesAnyElementExist(privacyScreenshotSelector, usernameTextBoxSelector))
+            if (webProcessor.DoesAnyElementExist(
+                privacyScreenshotSelector,
+                usernameTextBoxSelector))
             {
                 IsRegistered = false;
                 IsLoggedIn = false;
@@ -86,8 +90,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 throw new AccountNotRegisteredException(accountDetails.Username);
             }
-
-            AcceptCookies();
 
             IsLoggedIn = true;
 
@@ -252,15 +254,25 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         void AcceptCookies()
         {
             By cookieContainerSelector = By.Id("qc-cmp2-container");
+            By cookieOverlaySelector = By.XPath(@"//div[contains(@class,'qc-cmp-cleanslate')]");
 
-            webProcessor.WaitForElementToBeVisible(cookieContainerSelector);
+            webProcessor.WaitForElementToExist(cookieContainerSelector);
 
-            if (webProcessor.IsElementVisible(cookieContainerSelector))
+            if (!webProcessor.DoesElementExist(cookieContainerSelector))
             {
-                By agreeButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[2]");
-                
-                webProcessor.Click(agreeButtonSelector);
+                return;
             }
+
+            webProcessor.WaitForElementToBeVisible(cookieOverlaySelector);
+
+            By agreeButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[2]");
+                
+            logger.Debug(
+                MyOperation.SteamGiftsLogIn,
+                OperationStatus.InProgress,
+                "Accepting the cookies");
+
+            webProcessor.Click(agreeButtonSelector);
         }
 
         int GatherCurrentPoints()
