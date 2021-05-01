@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/hmlendea/steam-giveaways-bot/actions/workflows/node.js.yml/badge.svg)](https://github.com/hmlendea/steam-giveaways-bot/actions/workflows/node.js.yml)
+[![Build Status](https://github.com/hmlendea/steam-giveaways-bot/actions/workflows/dotnet.yml/badge.svg)](https://github.com/hmlendea/steam-giveaways-bot/actions/workflows/dotnet.yml)
 
 # Steam Giveaways Bot
 
