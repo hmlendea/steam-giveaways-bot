@@ -50,27 +50,13 @@ namespace SteamGiveawaysBot.Service
 
         public void Run()
         {
-            try
-            {
-                // TODO: Broken async
-                AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
+            // TODO: Broken async
+            AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
-                this.accountDetails.Username = accountResponse.Username;
-                this.accountDetails.Password = accountResponse.Password;
+            this.accountDetails.Username = accountResponse.Username;
+            this.accountDetails.Password = accountResponse.Password;
 
-                DoStuff();
-            }
-            catch (AggregateException ex)
-            {
-                foreach (Exception innerException in ex.InnerExceptions)
-                {
-                    logger.Error(Operation.Unknown, OperationStatus.Failure, innerException);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
-            }
+            DoStuff();
         }
 
         void DoStuff()
