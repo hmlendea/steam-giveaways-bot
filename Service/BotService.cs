@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-using NuciExtensions;
 using NuciLog.Core;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Exceptions;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 
@@ -55,85 +50,23 @@ namespace SteamGiveawaysBot.Service
 
         public void Run()
         {
-            try
-            {
-                // TODO: Broken async
-                AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
+            // TODO: Broken async
+            AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
-                this.accountDetails.Username = accountResponse.Username;
-                this.accountDetails.Password = accountResponse.Password;
+            this.accountDetails.Username = accountResponse.Username;
+            this.accountDetails.Password = accountResponse.Password;
 
-                DoStuff();
-            }
-            catch (AccountSuspendedException)
-            {
-                throw;
-            }
-            catch (AggregateException ex)
-            {
-                foreach (Exception innerException in ex.InnerExceptions)
-                {
-                    logger.Error(Operation.Unknown, OperationStatus.Failure, innerException);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(Operation.Unknown, OperationStatus.Failure, ex);
-            }
+            DoStuff();
         }
 
         void DoStuff()
         {
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
-
-            if (botSettings.IsPlayTimeFakingEnabled)
-            {
-                PlayGames();
-            }
-
-            try
-            {
-                giveawayProcessor.LogIn();
-            }
-            catch (AccountNotRegisteredException)
-            {
-                steamProcessor.GatherProfileInformation();
-                steamProcessor.UpdatePrivacySettings();
-                
-                giveawayProcessor.Register();
-                giveawayProcessor.ApplyCustomSettings();
-            }
             
+            giveawayProcessor.LogIn();
             giveawayProcessor.Run();
             giveawayProcessor.Stop();
-        }
-
-        void PlayGames()
-        {
-            IList<uint> appIds = steamProcessor.GatherOwnedGames().ToList();
-            int gamesToPlayCount = (int)((float)appIds.Count * 0.50f);
-
-            logger.Info(
-                MyOperation.PlayTimeFaking,
-                OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username, accountDetails.Username),
-                new LogInfo(MyLogInfoKey.OwnedGamesCount, appIds.Count),
-                new LogInfo(MyLogInfoKey.GamesCount, gamesToPlayCount));
-                
-            List<uint> appIdsToPlay = appIds
-                .Shuffle()
-                .Take(gamesToPlayCount)
-                .ToList();
-
-            using (var client = new SteamClientProcessor(accountDetails))
-            {
-                client.LogIn();
-                client.PlayGames(appIdsToPlay, TimeSpan.FromSeconds(5));
-                client.LogOut();
-            }
-
-            logger.Debug(MyOperation.PlayTimeFaking, OperationStatus.Success);
         }
     }
 }

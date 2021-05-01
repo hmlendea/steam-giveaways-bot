@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 
@@ -39,6 +40,7 @@ namespace SteamGiveawaysBot
         static DebugSettings debugSettings;
         static NuciLoggerSettings loggingSettings;
         static AccountDetails accountDetails;
+        static IWebDriver webDriver;
 
         static ILogger logger;
         
@@ -57,7 +59,7 @@ namespace SteamGiveawaysBot
             config.Bind(nameof(NuciLoggerSettings), loggingSettings);
 
             LoadBotCredentials(args);
-            IWebDriver webDriver = SetupWebDriver();
+            webDriver = SetupWebDriver();
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
@@ -99,6 +101,8 @@ namespace SteamGiveawaysBot
                 {
                     logger.Fatal(Operation.Unknown, OperationStatus.Failure, ex);
                 }
+
+                SaveCrashScreenshot();
 
                 logger.Info(
                     MyOperation.CrashRecovery,
@@ -205,6 +209,21 @@ namespace SteamGiveawaysBot
             driver.Manage().Window.Maximize();
 
             return driver;
+        }
+
+        static void SaveCrashScreenshot()
+        {
+            if (!debugSettings.IsCrashScreenshotEnabled)
+            {
+                return;
+            }
+
+            string directory = Path.GetDirectoryName(loggingSettings.LogFilePath);
+            string filePath = Path.Combine(directory, debugSettings.CrashScreenshotFileName);
+
+            ((ITakesScreenshot)webDriver)
+                .GetScreenshot()
+                .SaveAsFile(filePath);
         }
     }
 }

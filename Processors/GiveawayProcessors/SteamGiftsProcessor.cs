@@ -45,44 +45,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             this.rewardSender = rewardSender;
         }
 
-        public override void Register()
-        {
-            webProcessor.GoToUrl(RegistrationUrl);
-
-            By signInButton1Selector = By.XPath(@"//div[@class='nav__right-container']/div/a");
-            By signInButton2Selector = By.Id("imageLogin");
-            By registerButtonSelector = By.XPath(@"//div[contains(@class, 'form__submit-button')]");
-            By privacyScreenshotSelector = By.ClassName("form__screenshot");
-
-            By usernameTextBoxSelector = By.XPath(@"//form/div[1]/div[2]/input");
-            By emailTextBoxSelector = By.XPath(@"//form/div[2]/div[2]/input");
-            By countryDropDownSelector = By.XPath(@"//select[@name='country']");
-            By noEmailsRadioButton1Selector = By.XPath(@"//form/div[4]/div[2]/div[1]/div[2]/i[1]");
-            By noEmailsRadioButton2Selector = By.XPath(@"//form/div[5]/div[2]/div[1]/div[2]/i[1]");
-
-            if (!webProcessor.IsElementVisible(usernameTextBoxSelector))
-            {
-                webProcessor.Click(signInButton1Selector);
-                webProcessor.Click(signInButton2Selector);
-            }
-            
-            if (webProcessor.IsElementVisible(privacyScreenshotSelector))
-            {
-                throw new AccountRegistrationException("Cannot register on SteamGifts due to invalid Steam privacy settings");
-            }
-
-            webProcessor.SetText(usernameTextBoxSelector, accountDetails.Username);
-            webProcessor.SetText(emailTextBoxSelector, accountDetails.EmailAddress);
-            webProcessor.SelectOptionByValue(countryDropDownSelector, accountDetails.Country.SgCode.ToString());
-            
-            webProcessor.Click(noEmailsRadioButton1Selector);
-            webProcessor.Click(noEmailsRadioButton2Selector);
-
-            webProcessor.Click(registerButtonSelector);
-
-            accountDetails.IsRegisteredSteamGifts = true;
-        }
-
         public override void LogIn()
         {
             logger.Info(
@@ -128,18 +90,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             IsLoggedIn = true;
 
             logger.Debug(MyOperation.SteamGiftsLogIn, OperationStatus.Success);
-        }
-
-        public override void ApplyCustomSettings()
-        {
-            webProcessor.GoToUrl(SettingsUrl);
-
-            By hideHighLevelGiveawaysSelector = By.XPath(@"/html/body/div[1]/div/div/div[2]/form/div/div[4]/div[2]/div/div[1]/i[1]");
-            By saveButtonSelector = By.XPath(@"//div[contains(@class,'form__submit-button')]");
-
-            webProcessor.UpdateCheckbox(hideHighLevelGiveawaysSelector, true);
-
-            webProcessor.Click(saveButtonSelector);
         }
 
         protected override void GatherInfo()

@@ -79,11 +79,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 LogIn();
             }
 
-            if (!IsRegistered)
-            {
-                Register();
-            }
-
             RunLoop();
         }
 
@@ -98,10 +93,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         }
 
         public abstract void LogIn();
-
-        public abstract void Register();
-
-        public abstract void ApplyCustomSettings();
 
         protected abstract void GatherInfo();
         

@@ -9,7 +9,5 @@ namespace SteamGiveawaysBot.Configuration
         public string SharedSecretKey { get; set; }
         
         public int PageLoadTimeout { get; set; }
-
-        public bool IsPlayTimeFakingEnabled { get; set; }
     }
 }
