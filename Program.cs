@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 
@@ -217,9 +218,12 @@ namespace SteamGiveawaysBot
                 return;
             }
 
+            string directory = Path.GetDirectoryName(loggingSettings.LogFilePath);
+            string filePath = Path.Combine(directory, debugSettings.CrashScreenshotFileName);
+
             ((ITakesScreenshot)webDriver)
                 .GetScreenshot()
-                .SaveAsFile(debugSettings.CrashScreenshotFilePath);
+                .SaveAsFile(filePath);
         }
     }
 }
