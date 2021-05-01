@@ -255,24 +255,21 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             By cookieContainerSelector = By.Id("qc-cmp2-container");
             By cookieOverlaySelector = By.XPath(@"//div[contains(@class,'qc-cmp-cleanslate')]");
+            By moreOptionsButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[1]");
+            By agreeSelectedButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-buttons-desktop')]/button[1]");
 
-            webProcessor.WaitForElementToExist(cookieContainerSelector);
-
-            if (!webProcessor.DoesElementExist(cookieContainerSelector))
-            {
-                return;
-            }
-
-            webProcessor.WaitForElementToBeVisible(cookieOverlaySelector);
-
-            By agreeButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[2]");
+            webProcessor.WaitForAnyElementToBeVisible(
+                cookieContainerSelector,
+                cookieOverlaySelector,
+                moreOptionsButtonSelector);
                 
             logger.Debug(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.InProgress,
                 "Accepting the cookies");
 
-            webProcessor.Click(agreeButtonSelector);
+            webProcessor.Click(moreOptionsButtonSelector);
+            webProcessor.Click(agreeSelectedButtonSelector);
         }
 
         int GatherCurrentPoints()
