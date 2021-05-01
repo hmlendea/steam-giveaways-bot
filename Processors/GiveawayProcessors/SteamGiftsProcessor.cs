@@ -129,18 +129,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             for (int i = 1; i <= 50; i++)
             {
-                By pinnedGiveawaysWrapSelector = By.ClassName("pinned-giveaways__outer-wrap");
-                string baseXpath = "//div[@class='page__inner-wrap']/div[@class='widget-container']/div[2]";
-
-                if (webProcessor.DoesElementExist(pinnedGiveawaysWrapSelector))
-                {
-                    baseXpath += "/div[3]";
-                }
-                else
-                {
-                    baseXpath += "/div[2]";
-                }
-
+                string baseXpath = "//div[@class='page__heading']/following-sibling::div/div[@class='giveaway__row-outer-wrap']/..";
+                   
                 By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
                 By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div[1]/span");
                 By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span");
