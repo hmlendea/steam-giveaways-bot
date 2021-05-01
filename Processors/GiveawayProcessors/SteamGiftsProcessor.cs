@@ -243,13 +243,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         void AcceptCookies()
         {
-            By cookieContainerSelector = By.Id("qc-cmp2-container");
             By cookieOverlaySelector = By.XPath(@"//div[contains(@class,'qc-cmp-cleanslate')]");
             By moreOptionsButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[1]");
             By agreeSelectedButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-buttons-desktop')]/button[1]");
 
             webProcessor.WaitForAnyElementToBeVisible(
-                cookieContainerSelector,
                 cookieOverlaySelector,
                 moreOptionsButtonSelector);
                 
