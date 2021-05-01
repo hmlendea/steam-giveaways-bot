@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-using NuciExtensions;
 using NuciLog.Core;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Exceptions;
-using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 
@@ -61,13 +56,9 @@ namespace SteamGiveawaysBot.Service
                 AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
                 this.accountDetails.Username = accountResponse.Username;
-                this.accountDetails.Password = accountResponse.Password + "S";
+                this.accountDetails.Password = accountResponse.Password;
 
                 DoStuff();
-            }
-            catch (AccountSuspendedException)
-            {
-                throw;
             }
             catch (AggregateException ex)
             {
