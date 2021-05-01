@@ -7,7 +7,5 @@ namespace SteamGiveawaysBot.Processors
         void LogIn();
 
         void VisitChat();
-
-        IEnumerable<uint> GatherOwnedGames();
     }
 }

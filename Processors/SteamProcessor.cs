@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Authentication;
 
-using NuciExtensions;
 using NuciLog.Core;
 using NuciWeb;
 
@@ -117,117 +114,6 @@ namespace SteamGiveawaysBot.Processors
             webProcessor.WaitForElementToExist(avatarSelector);
         }
         
-        public IEnumerable<uint> GatherOwnedGames()
-        {
-            webProcessor.GoToUrl(GamesUrl);
-
-            By gameRowSelector = By.ClassName("gameListRow");
-            
-            IEnumerable<string> gameRowsIds = webProcessor.GetIdOfMany(gameRowSelector);
-            List<uint> appIds = new List<uint>();
-
-            foreach (string gameRowId in gameRowsIds)
-            {
-                string appIdText = gameRowId.Substring(5);
-                uint appId = uint.Parse(appIdText);
-
-                appIds.Add(appId);
-            }
-
-            return appIds;
-        }
-
-        public void ActivatePackages(IEnumerable<uint> subIds)
-        {
-            logger.Info(
-                MyOperation.PackageActivation,
-                OperationStatus.Started);
-
-            int packageCountToActivate = Math.Min(PackagesActivationLimit, subIds.Count());
-            int activatedPackagesCount = 0;
-
-            for (int i = 0; i < packageCountToActivate; i++)
-            {
-                uint subId = subIds.GetRandomElement();
-                bool wasActivated = ActivatePackage(subId);
-
-                if (wasActivated)
-                {
-                    activatedPackagesCount += 1;
-                }
-            }
-
-            logger.Debug(
-                MyOperation.PackageActivation,
-                OperationStatus.Success,
-                new LogInfo(MyLogInfoKey.GamesCount, activatedPackagesCount));
-        }
-
-        bool TryActivatePackage(uint package)
-        {
-            try
-            {
-                return ActivatePackage(package);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        bool ActivatePackage(uint package)
-        {
-            webProcessor.GoToUrl(LicensesUrl);
-
-            By pageContentSelector = By.ClassName("page_content");
-            By lastGameTitleSelector = By.XPath(@"//table[@class='account_table']/tbody/tr[2]/td[2]");
-
-            webProcessor.WaitForElementToExist(pageContentSelector);
-
-            string activationEndpoint = string.Format(AddFreeLicenseUrlFormat, package);
-            string activationScript = $"jQuery.post('{activationEndpoint}',{{ajax:true,sessionid:g_sessionID}})";
-            string previousGameTitle = string.Empty;
-            string currentGameTitle = string.Empty;
-
-            if (webProcessor.DoesElementExist(lastGameTitleSelector))
-            {
-                previousGameTitle = webProcessor.GetText(lastGameTitleSelector);
-            }
-
-            webProcessor.ExecuteScript(activationScript);
-            webProcessor.Wait(250);
-
-            for (int checkCount = 0; checkCount < 2; checkCount++)
-            {
-                webProcessor.Refresh();
-                webProcessor.WaitForElementToExist(pageContentSelector);
-
-                if (webProcessor.DoesElementExist(lastGameTitleSelector))
-                {
-                    currentGameTitle = webProcessor.GetText(lastGameTitleSelector);
-                }
-
-                if (currentGameTitle != previousGameTitle)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        Country GetCountry()
-        {
-            By countryFlagSelector = By.ClassName("profile_flag");
-
-            string countryFlagUrl = webProcessor.GetSource(countryFlagSelector);
-            string[] countryFlagUrlFields = countryFlagUrl.Split('/');
-
-            string countryCode = countryFlagUrlFields[countryFlagUrlFields.Length - 1].Substring(0, 2);
-
-            return Country.FromSteamCode(countryCode);
-        }
-
         void ThrowLogInException(string message)
         {
             Exception ex = new AuthenticationException(message);
