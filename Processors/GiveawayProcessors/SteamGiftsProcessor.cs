@@ -87,6 +87,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 throw new AccountNotRegisteredException(accountDetails.Username);
             }
 
+            AcceptCookies();
+
             IsLoggedIn = true;
 
             logger.Debug(MyOperation.SteamGiftsLogIn, OperationStatus.Success);
@@ -244,6 +246,20 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 {
                     webProcessor.Click(receivedRadioSelector);
                 }
+            }
+        }
+
+        void AcceptCookies()
+        {
+            By cookieContainerSelector = By.Id("qc-cmp2-container");
+
+            webProcessor.WaitForElementToBeVisible(cookieContainerSelector);
+
+            if (webProcessor.IsElementVisible(cookieContainerSelector))
+            {
+                By agreeButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[2]");
+                
+                webProcessor.Click(agreeButtonSelector);
             }
         }
 
