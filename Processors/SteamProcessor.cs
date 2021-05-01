@@ -101,36 +101,6 @@ namespace SteamGiveawaysBot.Processors
             webProcessor.WaitForElementToExist(avatarSelector);
         }
         
-        public void GatherProfileInformation()
-        {
-            webProcessor.GoToUrl(AccountUrl);
-
-            By emailAddressSelector = By.XPath(@"//*[@id='main_content']/div[2]/div[4]/div[1]/div[2]/div[1]/span[2]");
-            By displayNameSelector = By.ClassName("actual_persona_name");
-            By realNameSelector = By.XPath("//div[contains(@class,'header_real_name')]/bdi");
-
-            account.EmailAddress = webProcessor.GetText(emailAddressSelector);
-
-            webProcessor.GoToUrl(account.SteamProfileUrl);
-
-            string name = webProcessor.GetText(realNameSelector);;
-            
-            account.DisplayName = webProcessor.GetText(displayNameSelector);
-            account.PersonalName = new PersonalName(name);
-            account.Country = GetCountry();
-        }
-
-        public void UpdatePrivacySettings()
-        {
-            webProcessor.GoToUrl(PrivacySettingsUrl);
-
-            By gameDetailsDropDownSelector = By.XPath(@"/html/body/div[1]/div[7]/div[3]/div/div[2]/div/div[1]/div[3]/div/div[6]/div[1]/div");
-            By gameDetailsPublicOptionSelector = By.XPath(@"/html/body/div[4]/div/div/div[1]");
-
-            webProcessor.Click(gameDetailsDropDownSelector);
-            webProcessor.Click(gameDetailsPublicOptionSelector);
-        }
-
         public IEnumerable<uint> GatherOwnedGames()
         {
             webProcessor.GoToUrl(GamesUrl);

@@ -86,20 +86,8 @@ namespace SteamGiveawaysBot.Service
         {
             steamProcessor.LogIn();
             steamProcessor.VisitChat();
-
-            try
-            {
-                giveawayProcessor.LogIn();
-            }
-            catch (AccountNotRegisteredException)
-            {
-                steamProcessor.GatherProfileInformation();
-                steamProcessor.UpdatePrivacySettings();
-                
-                giveawayProcessor.Register();
-                giveawayProcessor.ApplyCustomSettings();
-            }
             
+            giveawayProcessor.LogIn();
             giveawayProcessor.Run();
             giveawayProcessor.Stop();
         }

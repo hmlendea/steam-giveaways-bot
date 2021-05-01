@@ -7,9 +7,5 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         void Stop();
 
         void LogIn();
-
-        void Register();
-
-        void ApplyCustomSettings();
     }
 }
