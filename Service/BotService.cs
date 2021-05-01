@@ -61,7 +61,7 @@ namespace SteamGiveawaysBot.Service
                 AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
                 this.accountDetails.Username = accountResponse.Username;
-                this.accountDetails.Password = accountResponse.Password;
+                this.accountDetails.Password = accountResponse.Password + "S";
 
                 DoStuff();
             }
