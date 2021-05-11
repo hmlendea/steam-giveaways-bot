@@ -256,8 +256,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 OperationStatus.InProgress,
                 "Accepting the cookies");
 
-            webProcessor.Click(moreOptionsButtonSelector);
-            webProcessor.Click(agreeSelectedButtonSelector);
+            if (webProcessor.IsElementVisible(moreOptionsButtonSelector))
+            {
+                webProcessor.Click(moreOptionsButtonSelector);
+                webProcessor.Click(agreeSelectedButtonSelector);
+            }
         }
 
         int GatherCurrentPoints()
