@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 using NuciLog.Core;
 using NuciWeb;
+using NuciWeb.Steam.Models;
 
 using OpenQA.Selenium;
 
@@ -35,9 +36,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         public SteamGiftsProcessor(
             IWebProcessor webProcessor,
             IRewardSender rewardSender,
-            AccountDetails accountDetails,
+            SteamAccount steamAccount,
             ILogger logger)
-            : base(webProcessor, accountDetails, logger)
+            : base(webProcessor, steamAccount, logger)
         {
             MinimumPoints = 20;
             MaximumPoints = 400;
@@ -50,7 +51,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Info(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username,  accountDetails.Username));
+                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
 
             webProcessor.GoToUrl(LogInUrl);
 
@@ -88,7 +89,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     webProcessor.Wait(TimeSpan.FromSeconds(30));
                 }
 
-                throw new AccountNotRegisteredException(accountDetails.Username);
+                throw new AccountNotRegisteredException(steamAccount.Username);
             }
 
             IsLoggedIn = true;
@@ -228,7 +229,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 Reward reward = new Reward();
                 reward.GiveawaysProvider = ProviderName;
                 reward.GiveawayId  = giveawayUrlFields[giveawayUrlFields.Length - 2];
-                reward.WinnerUsername = accountDetails.Username;
+                reward.WinnerUsername = steamAccount.Username;
                 reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
                 reward.ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text");
 

@@ -2,6 +2,7 @@ using System;
 
 using NuciLog.Core;
 using NuciWeb;
+using NuciWeb.Steam.Models;
 
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
@@ -48,7 +49,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         protected Giveaway LastProcessedGiveaway;
 
         protected readonly IWebProcessor webProcessor;
-        protected readonly AccountDetails accountDetails;
+        protected readonly SteamAccount steamAccount;
         protected readonly ILogger logger;
 
         DateTime LastRewardsChekingDate { get; set; }
@@ -57,11 +58,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public GiveawayProcessor(
             IWebProcessor webProcessor,
-            AccountDetails accountDetails,
+            SteamAccount steamAccount,
             ILogger logger)
         {
             this.webProcessor = webProcessor;
-            this.accountDetails = accountDetails;
+            this.steamAccount = steamAccount;
             this.logger = logger;
 
             IsRegistered = true;
@@ -87,7 +88,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             logger.Info(
                 MyOperation.BotStop,
                 new LogInfo(MyLogInfoKey.GiveawayProcessor, GetType().Name),
-                new LogInfo(MyLogInfoKey.Username, accountDetails.Username));
+                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
 
             IsRunning = false;
         }
@@ -110,7 +111,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (IsSuspended)
                 {
-                    throw new AccountSuspendedException(accountDetails.Username);
+                    throw new AccountSuspendedException(steamAccount.Username);
                 }
 
                 if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)
