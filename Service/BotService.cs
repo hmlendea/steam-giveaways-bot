@@ -1,12 +1,13 @@
-using System;
+using System.Security.Authentication;
 
 using NuciLog.Core;
+using NuciWeb.Steam;
+using NuciWeb.Steam.Models;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Entities;
-using SteamGiveawaysBot.Processors;
+using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 
 namespace SteamGiveawaysBot.Service
@@ -21,7 +22,7 @@ namespace SteamGiveawaysBot.Service
         
         readonly BotSettings botSettings;
         readonly DebugSettings debugSettings;
-        readonly AccountDetails accountDetails;
+        readonly SteamAccount steamAccount;
 
         readonly ILogger logger;
 
@@ -32,7 +33,7 @@ namespace SteamGiveawaysBot.Service
             ISteamProcessor steamProcessor,
             BotSettings botSettings,
             DebugSettings debugSettings,
-            AccountDetails accountDetails,
+            SteamAccount steamAccount,
             ILogger logger)
         {
             this.accountGatherer = accountGatherer;
@@ -43,27 +44,56 @@ namespace SteamGiveawaysBot.Service
 
             this.botSettings = botSettings;
             this.debugSettings = debugSettings;
-            this.accountDetails = accountDetails;
+            this.steamAccount = steamAccount;
 
             this.logger = logger;
         }
 
         public void Run()
         {
+            GatherTheCredentials();
+            LogIntoSteam();
+            JoinGiveaways();
+        }
+
+        void GatherTheCredentials()
+        {
             // TODO: Broken async
             AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
-            this.accountDetails.Username = accountResponse.Username;
-            this.accountDetails.Password = accountResponse.Password;
-
-            DoStuff();
+            steamAccount.Username = accountResponse.Username;
+            steamAccount.Password = accountResponse.Password;
         }
 
-        void DoStuff()
+        void LogIntoSteam()
         {
-            steamProcessor.LogIn();
-            steamProcessor.VisitChat();
-            
+            logger.Info(
+                MyOperation.SteamLogIn,
+                OperationStatus.Started,
+                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+
+            try
+            {
+                steamProcessor.LogIn(steamAccount);
+                steamProcessor.VisitChat();
+            }
+            catch (AuthenticationException ex)
+            {
+                logger.Error(
+                    MyOperation.SteamLogIn,
+                    OperationStatus.Failure,
+                    ex,
+                    new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+            }
+
+            logger.Debug(
+                MyOperation.SteamLogIn,
+                OperationStatus.Success,
+                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+        }
+
+        void JoinGiveaways()
+        {
             giveawayProcessor.LogIn();
             giveawayProcessor.Run();
             giveawayProcessor.Stop();
