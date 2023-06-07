@@ -17,6 +17,7 @@ using NuciWeb.Steam.Models;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Firefox;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
@@ -42,7 +43,7 @@ namespace SteamGiveawaysBot
         static IWebDriver webDriver;
 
         static ILogger logger;
-        
+
         static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(5);
 
         static void Main(string[] args)
@@ -106,7 +107,7 @@ namespace SteamGiveawaysBot
                 logger.Info(
                     MyOperation.CrashRecovery,
                     new LogInfo(MyLogInfoKey.RetryDelay, RetryDelay.TotalMilliseconds));
-                    
+
                 Thread.Sleep((int)RetryDelay.TotalMilliseconds);
             }
         }
@@ -160,7 +161,7 @@ namespace SteamGiveawaysBot
                 Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
             }
         }
-        
+
         static IConfiguration LoadConfiguration()
         {
             return new ConfigurationBuilder()
@@ -169,6 +170,36 @@ namespace SteamGiveawaysBot
         }
 
         static IWebDriver SetupWebDriver()
+        {
+            return SetupFirefoxWebDriver();
+        }
+
+        static IWebDriver SetupFirefoxWebDriver()
+        {
+            FirefoxOptions options = new FirefoxOptions();
+            options.PageLoadStrategy = PageLoadStrategy.None;
+			options.AddArgument("--disable-save-password-bubble");
+            options.SetPreference("privacy.firstparty.isolate", false);
+
+            if (debugSettings.IsHeadless)
+            {
+                options.AddArgument("--headless");
+                options.SetPreference("permissions.default.image", 2);
+            }
+
+            FirefoxDriverService service = FirefoxDriverService.CreateDefaultService();
+            service.SuppressInitialDiagnosticInformation = true;
+            service.HideCommandPromptWindow = true;
+
+            IWebDriver driver = new FirefoxDriver(service, options, TimeSpan.FromSeconds(botSettings.PageLoadTimeout));
+
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(botSettings.PageLoadTimeout);
+            driver.Manage().Window.Maximize();
+
+            return driver;
+        }
+
+        static IWebDriver SetupChromeWebDriver()
         {
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.None;
