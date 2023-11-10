@@ -42,7 +42,7 @@ namespace SteamGiveawaysBot
         static IWebDriver webDriver;
 
         static ILogger logger;
-        
+
         static TimeSpan ConnectionWaitTime => TimeSpan.FromMinutes(5);
 
         static void Main(string[] args)
@@ -58,7 +58,7 @@ namespace SteamGiveawaysBot
             config.Bind(nameof(NuciLoggerSettings), loggingSettings);
 
             LoadBotCredentials(args);
-            webDriver = SetupWebDriver();
+            webDriver = WebDriverInitialiser.InitialiseAvailableWebDriver();
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
@@ -106,7 +106,7 @@ namespace SteamGiveawaysBot
                 logger.Info(
                     MyOperation.CrashRecovery,
                     new LogInfo(MyLogInfoKey.RetryDelay, RetryDelay.TotalMilliseconds));
-                    
+
                 Thread.Sleep((int)RetryDelay.TotalMilliseconds);
             }
         }
@@ -160,54 +160,12 @@ namespace SteamGiveawaysBot
                 Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
             }
         }
-        
+
         static IConfiguration LoadConfiguration()
         {
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
-        }
-
-        static IWebDriver SetupWebDriver()
-        {
-            ChromeOptions options = new ChromeOptions();
-            options.PageLoadStrategy = PageLoadStrategy.None;
-            options.AddArgument("--silent");
-            options.AddArgument("--no-sandbox");
-			options.AddArgument("--disable-translate");
-			options.AddArgument("--disable-infobars");
-
-            if (debugSettings.IsHeadless)
-            {
-                options.AddArgument("--headless");
-                options.AddArgument("--disable-gpu");
-                options.AddArgument("--window-size=1920,1080");
-                options.AddArgument("--start-maximized");
-                options.AddArgument("--blink-settings=imagesEnabled=false");
-                options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
-            }
-
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.SuppressInitialDiagnosticInformation = true;
-            service.HideCommandPromptWindow = true;
-
-            IWebDriver driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(botSettings.PageLoadTimeout));
-            IJavaScriptExecutor scriptExecutor = (IJavaScriptExecutor)driver;
-            string userAgent = (string)scriptExecutor.ExecuteScript("return navigator.userAgent;");
-
-            if (userAgent.Contains("Headless"))
-            {
-                userAgent = userAgent.Replace("Headless", "");
-                options.AddArgument($"--user-agent={userAgent}");
-
-                driver.Quit();
-                driver = new ChromeDriver(service, options);
-            }
-
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(botSettings.PageLoadTimeout);
-            driver.Manage().Window.Maximize();
-
-            return driver;
         }
 
         static void SaveCrashScreenshot()
