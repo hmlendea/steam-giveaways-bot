@@ -161,21 +161,31 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             webProcessor.GoToUrl(giveaway.Url);
 
             By enterButtonSelector = By.ClassName("sidebar__entry-insert");
-            By errorSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+            By errorDivSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+            By errorASelector = By.XPath(@"//a[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
 
-            webProcessor.WaitForAnyElementToBeVisible(TimeSpan.FromSeconds(3), enterButtonSelector, errorSelector);
+            webProcessor.WaitForAnyElementToBeVisible(TimeSpan.FromSeconds(3), enterButtonSelector, errorDivSelector);
 
             if (!webProcessor.IsElementVisible(enterButtonSelector))
             {
                 string errorText = "Giveaway ended";
                 
-                if (webProcessor.IsElementVisible(errorSelector))
+                if (webProcessor.IsElementVisible(errorDivSelector))
                 {
-                    errorText = webProcessor.GetText(errorSelector).Trim();
+                    errorText = webProcessor.GetText(errorDivSelector).Trim();
 
                     if (errorText.Contains("Remove Entry"))
                     {
                         errorText = "Already entered";
+                    }
+                }
+                else if (webProcessor.IsElementVisible(errorASelector))
+                {
+                    errorText = webProcessor.GetText(errorASelector).Trim();
+
+                    if (errorText.Contains("Sync Required"))
+                    {
+                        errorText = "Steam profile not public";
                     }
                 }
 
