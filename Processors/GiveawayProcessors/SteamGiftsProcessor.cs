@@ -133,8 +133,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string baseXpath = "//div[@class='page__heading']/following-sibling::div/div[@class='giveaway__row-outer-wrap']/..";
 
                 By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
-                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div[1]/span");
-                By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span");
+                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/div/span");
+                By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span[last()]");
 
                 string giveawayLink = webProcessor.GetHyperlink(giveawayTitleSelector);
                 string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp");
