@@ -140,7 +140,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp");
                 string gameTitle = webProcessor.GetText(giveawayTitleSelector);
                 string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector).Last();
-                string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
+                string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
                 DateTime endTime = DateTimeExtensions.FromUnixTime(endTimeSelector);
@@ -230,22 +230,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                const string appIdPattern = ".*apps\\/([0-9]*)\\/.*";
-                string thumbnailStyle = webProcessor.GetAttribute(gameThumbnailSelector, "style");
-
-                string giveawayUrl = webProcessor.GetHyperlink(gameTitleSelector);
-                string[] giveawayUrlFields = giveawayUrl.Split('/');
-
-                Reward reward = new()
+                rewardSender.RecordReward(new()
                 {
                     GiveawaysProvider = ProviderName,
-                    GiveawayId = giveawayUrlFields[^2],
+                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector).Split('/')[^2],
                     WinnerUsername = steamAccount.Username,
-                    SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value,
+                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style"), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
                     ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")
-                };
-
-                rewardSender.RecordReward(reward);
+                });
 
                 if (webProcessor.IsElementVisible(receivedRadioSelector))
                 {
