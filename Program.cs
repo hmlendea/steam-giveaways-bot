@@ -16,7 +16,6 @@ using NuciWeb.Steam;
 using NuciWeb.Steam.Models;
 
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
@@ -30,8 +29,8 @@ namespace SteamGiveawaysBot
 {
     public sealed class Program
     {
-        static string[] UsernameOptions = { "-u", "--user", "--username" };
-        static string[] SecretKeyOptions = { "-k", "--ssk", "--key", "--secretkey", "--sharedsecretkey" };
+        static readonly string[] UsernameOptions = ["-u", "--user", "--username"];
+        static readonly string[] SecretKeyOptions = ["-k", "--ssk", "--key", "--secretkey", "--sharedsecretkey"];
 
         static TimeSpan RetryDelay => TimeSpan.FromMinutes(5);
 
@@ -140,7 +139,7 @@ namespace SteamGiveawaysBot
             {
                 try
                 {
-                    using (var client = new WebClient())
+                    using (WebClient client = new())
                     using (client.OpenRead("http://clients3.google.com/generate_204"))
                     {
                         isConnected = true;
@@ -161,12 +160,9 @@ namespace SteamGiveawaysBot
             }
         }
 
-        static IConfiguration LoadConfiguration()
-        {
-            return new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", true, true)
-                .Build();
-        }
+        static IConfiguration LoadConfiguration() => new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", true, true)
+            .Build();
 
         static void SaveCrashScreenshot()
         {

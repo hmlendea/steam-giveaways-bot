@@ -2,46 +2,24 @@ using System;
 
 namespace SteamGiveawaysBot.Entities
 {
-    public sealed class Giveaway : IEquatable<Giveaway>
+    public sealed class Giveaway(string providerName, string url, string gameTitle, int price, DateTime endTime) : IEquatable<Giveaway>
     {
-        public string Url { get; }
+        public string Url { get; } = url;
 
         public string ProviderName { get; set; }
 
-        public string Id
-        {
-            get
-            {
-                string[] fields = Url.Split('/');
-                return fields[fields.Length - 2];
-            }
-        }
+        public string Id => Url.Split('/')[^2];
 
         public string SteamAppUrl => $"https://store.steampowered.com/app/{SteamAppId}";
 
-        public string SteamAppId
-        {
-            get
-            {
-                string[] fields = Url.Split('/');
-                return fields[fields.Length - 1];
-            }
-        }
+        public string SteamAppId => Url.Split('/')[^1];
 
-        public string GameTitle { get; }
+        public string GameTitle { get; } = gameTitle;
 
-        public int Price { get; }
+        public int Price { get; } = price;
 
-        public DateTime EndTime { get; }
+        public DateTime EndTime { get; } = endTime;
 
-        public Giveaway(string providerName, string url, string gameTitle, int price, DateTime endTime)
-        {
-            Url = url;
-            GameTitle = gameTitle;
-            Price = price;
-            EndTime = endTime;
-        }
-        
         /// <summary>
         /// Determines whether the specified <see cref="Giveaway"/> is equal to the current <see cref="Giveaway"/>.
         /// </summary>
@@ -50,7 +28,7 @@ namespace SteamGiveawaysBot.Entities
         /// <see cref="Giveaway"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(Giveaway other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -71,7 +49,7 @@ namespace SteamGiveawaysBot.Entities
         /// <see cref="Giveaway"/>; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -100,9 +78,7 @@ namespace SteamGiveawaysBot.Entities
         }
 
         public static bool operator != (Giveaway me, Giveaway other)
-        {
-            return !(me == other);
-        }
+            => !(me == other);
 
         /// <summary>
         /// Serves as a hash function for a <see cref="Giveaway"/> object.
@@ -113,7 +89,7 @@ namespace SteamGiveawaysBot.Entities
         {
             unchecked
             {
-                return ((Url != null ? Url.GetHashCode() : 0) * 246);
+                return (Url != null ? Url.GetHashCode() : 0) * 246;
             }
         }
     }

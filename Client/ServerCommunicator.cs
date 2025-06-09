@@ -12,24 +12,12 @@ using SteamGiveawaysBot.Client.Models;
 
 namespace SteamGiveawaysBot.Client
 {
-    public class ServerCommunicator<TRequest> : IServerCommunicator<TRequest>
+    public class ServerCommunicator<TRequest>(
+        IHmacEncoder<TRequest> requestHmacEncoder,
+        BotSettings botSettings) : IServerCommunicator<TRequest>
         where TRequest : class
     {
-        readonly HttpClient httpClient;
-
-        readonly IHmacEncoder<TRequest> requestHmacEncoder;
-
-        readonly BotSettings botSettings;
-
-        public ServerCommunicator(
-            IHmacEncoder<TRequest> requestHmacEncoder,
-            BotSettings botSettings)
-        {
-            httpClient = new HttpClient();
-
-            this.requestHmacEncoder = requestHmacEncoder;
-            this.botSettings = botSettings;
-        }
+        readonly HttpClient httpClient = new();
 
         public async Task<HttpResponseMessage> SendRequest(HttpMethod method, string endpoint, TRequest request)
         {
@@ -41,69 +29,52 @@ namespace SteamGiveawaysBot.Client
 
             HttpResponseMessage httpResponse = await SendHttpRequest(method, endpoint);
             await ValdiateHttpRespone(httpResponse);
-            
+
             return httpResponse;
         }
 
         async Task<HttpResponseMessage> SendHttpRequest(HttpMethod method, string endpoint)
         {
-            if (method == HttpMethod.Get)
+            if (method.Equals(HttpMethod.Get))
             {
                 return await httpClient.GetAsync(endpoint);
             }
-            else if (method == HttpMethod.Post)
+
+            if (method.Equals(HttpMethod.Post))
             {
                 return await httpClient.PostAsync(endpoint, null);
             }
-            else
-            {
-                throw new ArgumentException("Unsupported HTTP method");
-            }
+
+            throw new ArgumentException("Unsupported HTTP method");
         }
 
-        async Task<ErrorResponse> DeserialiseErrorResponse(HttpResponseMessage httpResponse)
+        static async Task<ErrorResponse> DeserialiseErrorResponse(HttpResponseMessage httpResponse)
         {
             string responseString = await httpResponse.Content.ReadAsStringAsync();
-            ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
-            return response;
+            return JsonConvert.DeserializeObject<ErrorResponse>(responseString);
         }
 
-        async Task ValdiateHttpRespone(HttpResponseMessage httpResponse)
+        static async Task ValdiateHttpRespone(HttpResponseMessage httpResponse)
         {
-            if (!httpResponse.IsSuccessStatusCode)
+            if (httpResponse.IsSuccessStatusCode)
             {
-                ErrorResponse errorResponse = await DeserialiseErrorResponse(httpResponse);
-                throw new Exception(errorResponse.ErrorMessage);
+                return;
             }
+
+            ErrorResponse errorResponse = await DeserialiseErrorResponse(httpResponse);
+
+            throw new Exception(errorResponse.ErrorMessage);
         }
     }
-        
-    public class ServerCommunicator<TRequest, TResponse> : ServerCommunicator<TRequest>, IServerCommunicator<TRequest, TResponse>
+
+    public class ServerCommunicator<TRequest, TResponse>(
+        IHmacEncoder<TRequest> requestHmacEncoder,
+        IHmacEncoder<TResponse> responseHmacEncoder,
+        BotSettings botSettings) : ServerCommunicator<TRequest>(requestHmacEncoder, botSettings), IServerCommunicator<TRequest, TResponse>
         where TRequest : class
         where TResponse : Response
     {
-        readonly HttpClient httpClient;
-
-        readonly IHmacEncoder<TRequest> requestHmacEncoder;
-
-        readonly IHmacEncoder<TResponse> responseHmacEncoder;
-
-        readonly BotSettings botSettings;
-
-        public ServerCommunicator(
-            IHmacEncoder<TRequest> requestHmacEncoder,
-            IHmacEncoder<TResponse> responseHmacEncoder,
-            BotSettings botSettings)
-            : base(requestHmacEncoder, botSettings)
-        {
-            httpClient = new HttpClient();
-
-            this.requestHmacEncoder = requestHmacEncoder;
-            this.responseHmacEncoder = responseHmacEncoder;
-            this.botSettings = botSettings;
-        }
-
         // TODO: I don't like this 'new'
         public new async Task<TResponse> SendRequest(HttpMethod method, string endpoint, TRequest request)
         {
@@ -111,16 +82,15 @@ namespace SteamGiveawaysBot.Client
             TResponse response = await DeserialiseSuccessResponse(httpResponse);
 
             ValdiateResponse(response, botSettings.SharedSecretKey);
-            
+
             return response;
         }
 
-        async Task<TResponse> DeserialiseSuccessResponse(HttpResponseMessage httpResponse)
+        static async Task<TResponse> DeserialiseSuccessResponse(HttpResponseMessage httpResponse)
         {
             string responseString = await httpResponse.Content.ReadAsStringAsync();
-            TResponse response = JsonConvert.DeserializeObject<TResponse>(responseString);
 
-            return response;
+            return JsonConvert.DeserializeObject<TResponse>(responseString);
         }
 
         void ValdiateResponse(TResponse response, string sharedSecretKey)

@@ -4,11 +4,7 @@ namespace SteamGiveawaysBot.Logging
 {
     public sealed class MyOperation : Operation
     {
-        MyOperation(string name)
-            : base(name)
-        {
-            
-        }
+        MyOperation(string name) : base(name) { }
 
         public static Operation CrashRecovery => new MyOperation(nameof(CrashRecovery));
 

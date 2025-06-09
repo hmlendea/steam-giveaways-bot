@@ -4,11 +4,7 @@ namespace SteamGiveawaysBot.Logging
 {
     public sealed class MyLogInfoKey : LogInfoKey
     {
-        MyLogInfoKey(string name)
-            : base(name)
-        {
-            
-        }
+        MyLogInfoKey(string name) : base(name) { }
 
         public static LogInfoKey GiveawayProcessor => new MyLogInfoKey(nameof(GiveawayProcessor));
 
