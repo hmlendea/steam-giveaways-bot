@@ -12,9 +12,7 @@ namespace SteamGiveawaysBot.Exceptions
         /// </summary>
         /// <param name="username">The account username.</param>
         public AccountNotRegisteredException(string username)
-            : base($"The '{username}' account is not registered")
-        {
-        }
+            : base($"The '{username}' account is not registered") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AccountNotRegisteredException"/> class.
@@ -22,8 +20,6 @@ namespace SteamGiveawaysBot.Exceptions
         /// <param name="username">The account username.</param>
         /// <param name="innerException">The inner exception.</param>
         public AccountNotRegisteredException(string username, Exception innerException)
-            : base($"The '{username}' account is not registered", innerException)
-        {
-        }
+            : base($"The '{username}' account is not registered", innerException) { }
     }
 }

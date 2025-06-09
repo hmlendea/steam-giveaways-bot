@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using NuciExtensions;
 using NuciLog.Core;
 using NuciWeb;
 using NuciWeb.Steam.Models;
@@ -13,7 +14,6 @@ using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Exceptions;
 using SteamGiveawaysBot.Logging;
-using SteamGiveawaysBot.Utils;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
@@ -31,7 +31,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override string SettingsUrl => $"{HomePageUrl}/account/settings/giveaways";
 
-        IRewardSender rewardSender;
+        readonly IRewardSender rewardSender;
 
         public SteamGiftsProcessor(
             IWebProcessor webProcessor,
@@ -131,7 +131,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             for (int i = 1; i <= 50; i++)
             {
                 string baseXpath = "//div[@class='page__heading']/following-sibling::div/div[@class='giveaway__row-outer-wrap']/..";
-                   
+
                 By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
                 By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div[1]/span");
                 By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span");
@@ -140,12 +140,12 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp");
                 string gameTitle = webProcessor.GetText(giveawayTitleSelector);
                 string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector).Last();
-                string priceSubstring = priceString.Substring(1).Substring(0, priceString.Length - 3);
+                string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
-                DateTime endTime = DateTimeUtils.FromUnixTime(endTimeSelector);
+                DateTime endTime = DateTimeExtensions.FromUnixTime(endTimeSelector);
 
-                Giveaway giveaway = new Giveaway(ProviderName, giveawayLink, gameTitle, price, endTime);
+                Giveaway giveaway = new(ProviderName, giveawayLink, gameTitle, price, endTime);
 
                 if (LastProcessedGiveaway != giveaway)
                 {
@@ -169,7 +169,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             if (!webProcessor.IsElementVisible(enterButtonSelector))
             {
                 string errorText = "Giveaway ended";
-                
+
                 if (webProcessor.IsElementVisible(errorDivSelector))
                 {
                     errorText = webProcessor.GetText(errorDivSelector).Trim();
@@ -206,7 +206,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             for (int i = 0; i < rewardItems.Count(); i++)
             {
                 string rewardItemXpath = $"//div[@class='table__rows']/div[{i + 1}]/div[1]";
-                
+
                 By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
                 By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
                 By gameThumbnailSelector = By.XPath($"{rewardItemXpath}/div[1]/a");
@@ -230,20 +230,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                     }
                 }
 
-                const string appIdPattern = ".*apps\\/([0-9]*)\\/.*";
-                string thumbnailStyle = webProcessor.GetAttribute(gameThumbnailSelector, "style");
-
-                string giveawayUrl = webProcessor.GetHyperlink(gameTitleSelector);
-                string[] giveawayUrlFields = giveawayUrl.Split('/');
-
-                Reward reward = new Reward();
-                reward.GiveawaysProvider = ProviderName;
-                reward.GiveawayId  = giveawayUrlFields[giveawayUrlFields.Length - 2];
-                reward.WinnerUsername = steamAccount.Username;
-                reward.SteamAppId = Regex.Match(thumbnailStyle, appIdPattern).Groups[1].Value;
-                reward.ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text");
-
-                rewardSender.RecordReward(reward);
+                rewardSender.RecordReward(new()
+                {
+                    GiveawaysProvider = ProviderName,
+                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector).Split('/')[^2],
+                    WinnerUsername = steamAccount.Username,
+                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style"), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
+                    ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")
+                });
 
                 if (webProcessor.IsElementVisible(receivedRadioSelector))
                 {
@@ -261,7 +255,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             webProcessor.WaitForAnyElementToBeVisible(
                 cookieOverlaySelector,
                 moreOptionsButtonSelector);
-                
+
             logger.Debug(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.InProgress,

@@ -10,7 +10,10 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 {
-    public abstract class GiveawayProcessor : IGiveawayProcessor
+    public abstract class GiveawayProcessor(
+        IWebProcessor webProcessor,
+        SteamAccount steamAccount,
+        ILogger logger) : IGiveawayProcessor
     {
         public abstract string ProviderName { get; }
 
@@ -28,7 +31,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public bool IsLoggedIn { get; protected set; }
 
-        public bool IsRegistered { get; protected set; }
+        public bool IsRegistered { get; protected set; } = true;
 
         public bool IsSuspended { get; protected set; }
 
@@ -48,25 +51,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         protected Giveaway LastProcessedGiveaway;
 
-        protected readonly IWebProcessor webProcessor;
-        protected readonly SteamAccount steamAccount;
-        protected readonly ILogger logger;
+        protected readonly IWebProcessor webProcessor = webProcessor;
+        protected readonly SteamAccount steamAccount = steamAccount;
+        protected readonly ILogger logger = logger;
 
         DateTime LastRewardsChekingDate { get; set; }
 
         TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
-
-        public GiveawayProcessor(
-            IWebProcessor webProcessor,
-            SteamAccount steamAccount,
-            ILogger logger)
-        {
-            this.webProcessor = webProcessor;
-            this.steamAccount = steamAccount;
-            this.logger = logger;
-
-            IsRegistered = true;
-        }
 
         public void Run()
         {
@@ -96,9 +87,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         public abstract void LogIn();
 
         protected abstract void GatherInfo();
-        
+
         protected abstract Giveaway FindGiveaway();
-        
+
         protected abstract void JoinGiveaway(Giveaway giveaway);
 
         protected abstract void ProcessRewards();
@@ -139,7 +130,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                         new LogInfo(MyLogInfoKey.RechargeDuration, RechargeWaitDuration.TotalMilliseconds),
                         new LogInfo(MyLogInfoKey.MinimumPoints, MinimumPoints),
                         new LogInfo(MyLogInfoKey.CurrentPoints, CurrentPoints));
-                    
+
                     NextCheckTime = DateTime.Now + RechargeWaitDuration;
                 }
 
@@ -171,7 +162,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             try
             {
                 JoinGiveaway(giveaway);
-                
+
                 logger.Info(
                     MyOperation.JoinGiveaway,
                     OperationStatus.Success,

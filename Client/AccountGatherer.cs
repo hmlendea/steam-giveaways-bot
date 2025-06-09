@@ -9,24 +9,11 @@ using SteamGiveawaysBot.Logging;
 
 namespace SteamGiveawaysBot.Client
 {
-    public sealed class AccountGatherer : IAccountGatherer
+    public sealed class AccountGatherer(
+        BotSettings botSettings,
+        IServerCommunicator<AccountRequest, AccountResponse> serverCommunicator,
+        ILogger logger) : IAccountGatherer
     {
-        readonly BotSettings botSettings;
-
-        readonly IServerCommunicator<AccountRequest, AccountResponse> serverCommunicator;
-
-        readonly ILogger logger;
-
-        public AccountGatherer(
-            BotSettings botSettings,
-            IServerCommunicator<AccountRequest, AccountResponse> serverCommunicator,
-            ILogger logger)
-        {
-            this.botSettings = botSettings;
-            this.serverCommunicator = serverCommunicator;
-            this.logger = logger;
-        }
-
         public async Task<AccountResponse> GatherAccount()
         {
             logger.Info(
@@ -49,20 +36,14 @@ namespace SteamGiveawaysBot.Client
             return response;
         }
 
-        AccountRequest BuildRequestObject()
+        AccountRequest BuildRequestObject() => new()
         {
-            AccountRequest request = new AccountRequest();
-            request.Username = botSettings.Username;
-            request.GiveawaysProvider = "SteamGifts";
+            Username = botSettings.Username,
+            GiveawaysProvider = "SteamGifts"
+        };
 
-            return request;
-        }
-
-        string BuildRequestUrl(AccountRequest request)
-        {
-            return
-                $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
-                $"?gaProvider=SteamGifts"; // TODO: Hardcoded
-        }
+        string BuildRequestUrl(AccountRequest request) =>
+            $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
+            $"?gaProvider=SteamGifts"; // TODO: Hardcoded
     }
 }

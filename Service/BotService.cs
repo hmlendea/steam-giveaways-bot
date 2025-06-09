@@ -6,49 +6,18 @@ using NuciWeb.Steam.Models;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
-using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
 
 namespace SteamGiveawaysBot.Service
 {
-    public class BotService : IBotService
+    public class BotService(
+        IAccountGatherer accountGatherer,
+        IGiveawayProcessor giveawayProcessor,
+        ISteamProcessor steamProcessor,
+        SteamAccount steamAccount,
+        ILogger logger) : IBotService
     {
-        readonly IAccountGatherer accountGatherer;
-        readonly IRewardSender rewardSender;
-        
-        readonly IGiveawayProcessor giveawayProcessor;
-        readonly ISteamProcessor steamProcessor;
-        
-        readonly BotSettings botSettings;
-        readonly DebugSettings debugSettings;
-        readonly SteamAccount steamAccount;
-
-        readonly ILogger logger;
-
-        public BotService(
-            IAccountGatherer accountGatherer,
-            IRewardSender rewardSender,
-            IGiveawayProcessor giveawayProcessor,
-            ISteamProcessor steamProcessor,
-            BotSettings botSettings,
-            DebugSettings debugSettings,
-            SteamAccount steamAccount,
-            ILogger logger)
-        {
-            this.accountGatherer = accountGatherer;
-            this.rewardSender = rewardSender;
-            
-            this.giveawayProcessor = giveawayProcessor;
-            this.steamProcessor = steamProcessor;
-
-            this.botSettings = botSettings;
-            this.debugSettings = debugSettings;
-            this.steamAccount = steamAccount;
-
-            this.logger = logger;
-        }
-
         public void Run()
         {
             GatherTheCredentials();

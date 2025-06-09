@@ -10,28 +10,11 @@ using SteamGiveawaysBot.Client.Models;
 
 namespace SteamGiveawaysBot.Client
 {
-    public sealed class RewardSender : IRewardSender
+    public sealed class RewardSender(
+        BotSettings botSettings,
+        IServerCommunicator<RecordRewardRequest> serverCommunicator,
+        ILogger logger) : IRewardSender
     {
-        readonly HttpClient httpClient;
-
-        readonly BotSettings botSettings;
-
-        readonly IServerCommunicator<RecordRewardRequest> serverCommunicator;
-
-        readonly ILogger logger;
-
-        public RewardSender(
-            BotSettings botSettings,
-            IServerCommunicator<RecordRewardRequest> serverCommunicator,
-            ILogger logger)
-        {
-            httpClient = new HttpClient();
-
-            this.botSettings = botSettings;
-            this.serverCommunicator = serverCommunicator;
-            this.logger = logger;
-        }
-
         public async Task RecordReward(Reward reward)
         {
             logger.Info(
@@ -52,29 +35,23 @@ namespace SteamGiveawaysBot.Client
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
         }
 
-        public RecordRewardRequest BuildRequestObject(Reward reward)
+        public RecordRewardRequest BuildRequestObject(Reward reward) => new()
         {
-            RecordRewardRequest request = new RecordRewardRequest();
-            request.Username = botSettings.Username;
-            request.GiveawaysProvider = reward.GiveawaysProvider;
-            request.GiveawayId = reward.GiveawayId;
-            request.SteamUsername = reward.WinnerUsername;
-            request.SteamAppId = reward.SteamAppId;
-            request.ActivationKey = reward.ActivationKey;
+            Username = botSettings.Username,
+            GiveawaysProvider = reward.GiveawaysProvider,
+            GiveawayId = reward.GiveawayId,
+            SteamUsername = reward.WinnerUsername,
+            SteamAppId = reward.SteamAppId,
+            ActivationKey = reward.ActivationKey
+        };
 
-            return request;
-        }
-
-        string BuildRequestUrl(RecordRewardRequest request)
-        {
-            return
-                $"{botSettings.ServerUrl}/Rewards" +
-                $"?username={request.Username}" +
-                $"&gaProvider={request.GiveawaysProvider}" +
-                $"&gaId={request.GiveawayId}" +
-                $"&steamUsername={request.SteamUsername}" +
-                $"&steamAppId={request.SteamAppId}" +
-                $"&activationKey={request.ActivationKey}";
-        }
+        string BuildRequestUrl(RecordRewardRequest request) =>
+            $"{botSettings.ServerUrl}/Rewards" +
+            $"?username={request.Username}" +
+            $"&gaProvider={request.GiveawaysProvider}" +
+            $"&gaId={request.GiveawayId}" +
+            $"&steamUsername={request.SteamUsername}" +
+            $"&steamAppId={request.SteamAppId}" +
+            $"&activationKey={request.ActivationKey}";
     }
 }
