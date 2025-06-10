@@ -172,7 +172,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (webProcessor.IsElementVisible(errorDivSelector))
                 {
-                    errorText = webProcessor.GetText(errorDivSelector).Trim();
+                    errorText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(errorDivSelector)).Trim();
 
                     if (errorText.Contains("Remove Entry"))
                     {
@@ -181,7 +181,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
                 else if (webProcessor.IsElementVisible(errorASelector))
                 {
-                    errorText = webProcessor.GetText(errorASelector).Trim();
+                    errorText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(errorASelector)).Trim();
 
                     if (errorText.Contains("Sync Required"))
                     {
@@ -201,7 +201,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             By rewardItemSelector = By.ClassName("table__row-inner-wrap");
 
-            IEnumerable<IWebElement> rewardItems = webProcessor.GetElements(rewardItemSelector);
+            IEnumerable<IWebElement> rewardItems = RetryUntilTheResultIsNotNull(() => webProcessor.GetElements(rewardItemSelector));
 
             for (int i = 0; i < rewardItems.Count(); i++)
             {
@@ -222,7 +222,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (!webProcessor.DoesElementExist(keyClipboardSelector))
                 {
-                    string keyStatus = webProcessor.GetText(keyStatusSelector).Trim();
+                    string keyStatus = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(keyStatusSelector)).Trim();
 
                     if (keyStatus.Length <= 3)
                     {
@@ -233,10 +233,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 rewardSender.RecordReward(new()
                 {
                     GiveawaysProvider = ProviderName,
-                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector).Split('/')[^2],
+                    GiveawayId = RetryUntilTheResultIsNotNull(() => webProcessor.GetHyperlink(gameTitleSelector)).Split('/')[^2],
                     WinnerUsername = steamAccount.Username,
-                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style"), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
-                    ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")
+                    SteamAppId = Regex.Match(RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(gameThumbnailSelector, "style")), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
+                    ActivationKey = RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")),
                 });
 
                 if (webProcessor.IsElementVisible(receivedRadioSelector))
