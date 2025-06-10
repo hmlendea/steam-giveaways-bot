@@ -136,10 +136,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/span");
                 By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span[last()]");
 
-                string giveawayLink = RetryUntilTheResultIsNotNull(() => webProcessor.GetHyperlink(giveawayTitleSelector));
-                string endTimeSelector = RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp"));
-                string gameTitle = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(giveawayTitleSelector));
-                string priceString = RetryUntilTheResultIsNotNull(() => webProcessor.GetTextOfMany(giveawayPriceSelector)).Last();
+                string giveawayLink = webProcessor.GetHyperlink(giveawayTitleSelector, retryOnDomFailure: true);
+                string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp", retryOnDomFailure: true);
+                string gameTitle = webProcessor.GetText(giveawayTitleSelector, retryOnDomFailure: true);
+                string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector, retryOnDomFailure: true).Last();
                 string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
@@ -172,7 +172,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (webProcessor.IsElementVisible(errorDivSelector))
                 {
-                    errorText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(errorDivSelector)).Trim();
+                    errorText = webProcessor.GetText(errorDivSelector, retryOnDomFailure: true).Trim();
 
                     if (errorText.Contains("Remove Entry"))
                     {
@@ -181,7 +181,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
                 else if (webProcessor.IsElementVisible(errorASelector))
                 {
-                    errorText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(errorASelector)).Trim();
+                    errorText = webProcessor.GetText(errorASelector, retryOnDomFailure: true).Trim();
 
                     if (errorText.Contains("Sync Required"))
                     {
@@ -201,9 +201,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             By rewardItemSelector = By.ClassName("table__row-inner-wrap");
 
-            IEnumerable<IWebElement> rewardItems = RetryUntilTheResultIsNotNull(() => webProcessor.GetElements(rewardItemSelector));
+            IList<IWebElement> rewardItems = webProcessor.GetElements(rewardItemSelector);
 
-            for (int i = 0; i < rewardItems.Count(); i++)
+            for (int i = 0; i < rewardItems.Count; i++)
             {
                 string rewardItemXpath = $"//div[@class='table__rows']/div[{i + 1}]/div[1]";
 
@@ -222,7 +222,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (!webProcessor.DoesElementExist(keyClipboardSelector))
                 {
-                    string keyStatus = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(keyStatusSelector)).Trim();
+                    string keyStatus = webProcessor.GetText(keyStatusSelector, retryOnDomFailure: true).Trim();
 
                     if (keyStatus.Length <= 3)
                     {
@@ -233,10 +233,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 rewardSender.RecordReward(new()
                 {
                     GiveawaysProvider = ProviderName,
-                    GiveawayId = RetryUntilTheResultIsNotNull(() => webProcessor.GetHyperlink(gameTitleSelector)).Split('/')[^2],
+                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector, retryOnDomFailure: true).Split('/')[^2],
                     WinnerUsername = steamAccount.Username,
-                    SteamAppId = Regex.Match(RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(gameThumbnailSelector, "style")), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
-                    ActivationKey = RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")),
+                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style", retryOnDomFailure: true), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
+                    ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text", retryOnDomFailure: true)
                 });
 
                 if (webProcessor.IsElementVisible(receivedRadioSelector))
@@ -270,7 +270,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentPoints()
         {
-            string pointsText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(By.ClassName("nav__points")));
+            string pointsText = webProcessor.GetText(By.ClassName("nav__points"), retryOnDomFailure: true);
 
             if (string.IsNullOrWhiteSpace(pointsText))
             {
@@ -282,7 +282,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentRewards()
         {
-            string rewardsText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a")));
+            string rewardsText = webProcessor.GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"), retryOnDomFailure: true);
 
             if (string.IsNullOrWhiteSpace(rewardsText))
             {
@@ -290,35 +290,6 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
 
             return int.Parse(rewardsText);
-        }
-
-        T RetryUntilTheResultIsNotNull<T>(Func<T> action, int maxTries = 10, int waitTimeMs = 1500) where T : class
-        {
-            T result = null;
-            int tries = 1;
-
-            while (result is null)
-            {
-                try
-                {
-                    result = action();
-                }
-                catch
-                {
-                    webProcessor.Wait(waitTimeMs);
-
-                    if (tries >= maxTries)
-                    {
-                        throw;
-                    }
-                }
-                finally
-                {
-                    tries += 1;
-                }
-            }
-
-            return result;
         }
     }
 }
