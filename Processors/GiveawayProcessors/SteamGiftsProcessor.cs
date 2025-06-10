@@ -143,7 +143,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
-                DateTime endTime = DateTimeExtensions.FromUnixTime(endTimeSelector);
+                DateTime endTime = DateTimeExtensions.FromUnixTime(endTimeSelector).ToLocalTime();
 
                 Giveaway giveaway = new(ProviderName, giveawayLink, gameTitle, price, endTime);
 
