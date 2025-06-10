@@ -45,9 +45,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public DateTime NextCheckTime;
 
-        public TimeSpan RechargeWaitDuration => TimeSpan.FromMinutes(30);
+        public static TimeSpan RechargeWaitDuration => TimeSpan.FromMinutes(30);
 
-        public TimeSpan DefaultWaitDuration => TimeSpan.FromMinutes(5);
+        public static TimeSpan DefaultWaitDuration => TimeSpan.FromMinutes(5);
 
         protected Giveaway LastProcessedGiveaway;
 
@@ -57,7 +57,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         DateTime LastRewardsChekingDate { get; set; }
 
-        TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
+        static TimeSpan RewardsCheckingInterval => TimeSpan.FromHours(3);
 
         public void Run()
         {

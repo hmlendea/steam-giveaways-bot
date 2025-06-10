@@ -133,13 +133,13 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 string baseXpath = "//div[@class='page__heading']/following-sibling::div/div[@class='giveaway__row-outer-wrap']/..";
 
                 By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
-                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/div/span");
+                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/span");
                 By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span[last()]");
 
-                string giveawayLink = webProcessor.GetHyperlink(giveawayTitleSelector);
-                string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp");
-                string gameTitle = webProcessor.GetText(giveawayTitleSelector);
-                string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector).Last();
+                string giveawayLink = RetryUntilTheResultIsNotNull(() => webProcessor.GetHyperlink(giveawayTitleSelector));
+                string endTimeSelector = RetryUntilTheResultIsNotNull(() => webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp"));
+                string gameTitle = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(giveawayTitleSelector));
+                string priceString = RetryUntilTheResultIsNotNull(() => webProcessor.GetTextOfMany(giveawayPriceSelector)).Last();
                 string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
@@ -270,8 +270,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentPoints()
         {
-            By pointsSelector = By.ClassName("nav__points");
-            string pointsText = webProcessor.GetText(pointsSelector);
+            string pointsText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(By.ClassName("nav__points")));
 
             if (string.IsNullOrWhiteSpace(pointsText))
             {
@@ -283,8 +282,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentRewards()
         {
-            By rewardsSelector = By.XPath(@"/html/body/header/nav/div[2]/div[2]/a");
-            string rewardsText = webProcessor.GetText(rewardsSelector);
+            string rewardsText = RetryUntilTheResultIsNotNull(() => webProcessor.GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a")));
 
             if (string.IsNullOrWhiteSpace(rewardsText))
             {
@@ -292,6 +290,35 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             }
 
             return int.Parse(rewardsText);
+        }
+
+        T RetryUntilTheResultIsNotNull<T>(Func<T> action, int maxTries = 10, int waitTimeMs = 1500) where T : class
+        {
+            T result = null;
+            int tries = 1;
+
+            while (result is null)
+            {
+                try
+                {
+                    result = action();
+                }
+                catch
+                {
+                    webProcessor.Wait(waitTimeMs);
+
+                    if (tries >= maxTries)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    tries += 1;
+                }
+            }
+
+            return result;
         }
     }
 }
