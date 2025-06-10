@@ -57,7 +57,7 @@ namespace SteamGiveawaysBot
             config.Bind(nameof(NuciLoggerSettings), loggingSettings);
 
             LoadBotCredentials(args);
-            webDriver = WebDriverInitialiser.InitialiseAvailableWebDriver();
+            webDriver = WebDriverInitialiser.InitialiseAvailableWebDriver(debugSettings.IsDebugMode);
 
             IServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton(botSettings)
