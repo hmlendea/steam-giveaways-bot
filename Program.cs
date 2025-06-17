@@ -10,7 +10,6 @@ using NuciCLI;
 using NuciLog;
 using NuciLog.Configuration;
 using NuciLog.Core;
-using NuciSecurity.HMAC;
 using NuciWeb;
 using NuciWeb.Steam;
 using NuciWeb.Steam.Models;
@@ -19,7 +18,6 @@ using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Client.Models;
-using SteamGiveawaysBot.Client.Security;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
@@ -65,9 +63,6 @@ namespace SteamGiveawaysBot
                 .AddSingleton(loggingSettings)
                 .AddSingleton(steamAccount)
                 .AddSingleton<ILogger, NuciLogger>()
-                .AddSingleton<IHmacEncoder<AccountRequest>, AccountRequestHmacEncoder>()
-                .AddSingleton<IHmacEncoder<AccountResponse>, AccountResponseHmacEncoder>()
-                .AddSingleton<IHmacEncoder<RecordRewardRequest>, RecordRewardRequestHmacEncoder>()
                 .AddSingleton<IServerCommunicator<AccountRequest, AccountResponse>, ServerCommunicator<AccountRequest, AccountResponse>>()
                 .AddSingleton<IServerCommunicator<RecordRewardRequest>, ServerCommunicator<RecordRewardRequest>>()
                 .AddSingleton<IAccountGatherer, AccountGatherer>()

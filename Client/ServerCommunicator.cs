@@ -12,18 +12,18 @@ using SteamGiveawaysBot.Client.Models;
 
 namespace SteamGiveawaysBot.Client
 {
-    public class ServerCommunicator<TRequest>(
-        IHmacEncoder<TRequest> requestHmacEncoder,
-        BotSettings botSettings) : IServerCommunicator<TRequest>
+    public class ServerCommunicator<TRequest>(BotSettings botSettings) : IServerCommunicator<TRequest>
         where TRequest : class
     {
         readonly HttpClient httpClient = new();
+
+        protected BotSettings botSettings = botSettings ?? throw new ArgumentNullException(nameof(botSettings));
 
         public async Task<HttpResponseMessage> SendRequest(HttpMethod method, string endpoint, TRequest request)
         {
             if (!endpoint.Contains("&hmac="))
             {
-                string hmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
+                string hmacToken = HmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
                 endpoint += $"&hmac={HttpUtility.UrlEncode(hmacToken)}";
             }
 
@@ -68,10 +68,7 @@ namespace SteamGiveawaysBot.Client
         }
     }
 
-    public class ServerCommunicator<TRequest, TResponse>(
-        IHmacEncoder<TRequest> requestHmacEncoder,
-        IHmacEncoder<TResponse> responseHmacEncoder,
-        BotSettings botSettings) : ServerCommunicator<TRequest>(requestHmacEncoder, botSettings), IServerCommunicator<TRequest, TResponse>
+    public class ServerCommunicator<TRequest, TResponse>(BotSettings botSettings) : ServerCommunicator<TRequest>(botSettings), IServerCommunicator<TRequest, TResponse>
         where TRequest : class
         where TResponse : Response
     {
@@ -93,9 +90,9 @@ namespace SteamGiveawaysBot.Client
             return JsonConvert.DeserializeObject<TResponse>(responseString);
         }
 
-        void ValdiateResponse(TResponse response, string sharedSecretKey)
+        static void ValdiateResponse(TResponse response, string sharedSecretKey)
         {
-            if (!responseHmacEncoder.IsTokenValid(response.HmacToken, response, sharedSecretKey))
+            if (!HmacEncoder.IsTokenValid(response.HmacToken, response, sharedSecretKey))
             {
                 throw new AuthenticationException("The response HMAC token is not valid");
             }
