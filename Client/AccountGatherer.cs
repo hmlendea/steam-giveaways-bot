@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,18 +23,28 @@ namespace SteamGiveawaysBot.Client
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
             SteamAccountRequest request = BuildRequestObject();
-            string endpoint = BuildRequestUrl(request);
-            SteamAccountResponse response = await serverCommunicator.SendRequest(HttpMethod.Get, endpoint, request);
 
-            // TODO: Do the mapping in a dedicated place
+            try
+            {
+                var response = await serverCommunicator.SendRequest(HttpMethod.Get, $"{botSettings.ServerUrl}/SteamAccount/{request.Username}", request);
 
-            logger.Debug(
-                MyOperation.AccountDetailsRetrieval,
-                OperationStatus.Success,
-                "Account details retrieved successfully",
-                new LogInfo(MyLogInfoKey.Username, response.Username));
+                logger.Debug(
+                    MyOperation.AccountDetailsRetrieval,
+                    OperationStatus.Success,
+                    new LogInfo(MyLogInfoKey.Username, response.Username));
 
-            return response;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(
+                    MyOperation.AccountDetailsRetrieval,
+                    OperationStatus.Failure,
+                    ex,
+                    new LogInfo(MyLogInfoKey.Username, request.Username));
+
+                throw;
+            }
         }
 
         SteamAccountRequest BuildRequestObject() => new()
@@ -41,9 +52,5 @@ namespace SteamGiveawaysBot.Client
             Username = botSettings.Username,
             GiveawaysProvider = "SteamGifts"
         };
-
-        string BuildRequestUrl(SteamAccountRequest request) =>
-            $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
-            $"?gaProvider=SteamGifts"; // TODO: Hardcoded
     }
 }

@@ -7,6 +7,7 @@ using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Client.Models;
+using System;
 
 namespace SteamGiveawaysBot.Client
 {
@@ -24,15 +25,27 @@ namespace SteamGiveawaysBot.Client
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
             RecordRewardRequest request = BuildRequestObject(reward);
-            string endpoint = BuildRequestUrl(request);
+            try
+            {
+                await serverCommunicator.SendRequest(HttpMethod.Post, $"{botSettings.ServerUrl}/Rewards", request);
 
-            await serverCommunicator.SendRequest(HttpMethod.Post, endpoint, request);
+                logger.Debug(
+                    MyOperation.RewardRecording,
+                    OperationStatus.Success,
+                    new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
+                    new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+            }
+            catch (Exception ex)
+            {
+                logger.Error(
+                    MyOperation.RewardRecording,
+                    OperationStatus.Failure,
+                    ex,
+                    new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
+                    new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            logger.Debug(
-                MyOperation.RewardRecording,
-                OperationStatus.Success,
-                new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
-                new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+                throw;
+            }
         }
 
         public RecordRewardRequest BuildRequestObject(Reward reward) => new()
@@ -44,14 +57,5 @@ namespace SteamGiveawaysBot.Client
             SteamAppId = reward.SteamAppId,
             ActivationKey = reward.ActivationKey
         };
-
-        string BuildRequestUrl(RecordRewardRequest request) =>
-            $"{botSettings.ServerUrl}/Rewards" +
-            $"?username={request.Username}" +
-            $"&gaProvider={request.GiveawaysProvider}" +
-            $"&gaId={request.GiveawayId}" +
-            $"&steamUsername={request.SteamUsername}" +
-            $"&steamAppId={request.SteamAppId}" +
-            $"&activationKey={request.ActivationKey}";
     }
 }
