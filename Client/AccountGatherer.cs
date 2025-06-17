@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,39 +12,45 @@ namespace SteamGiveawaysBot.Client
 {
     public sealed class AccountGatherer(
         BotSettings botSettings,
-        IServerCommunicator<AccountRequest, AccountResponse> serverCommunicator,
+        IServerCommunicator<SteamAccountRequest, SteamAccountResponse> serverCommunicator,
         ILogger logger) : IAccountGatherer
     {
-        public async Task<AccountResponse> GatherAccount()
+        public async Task<SteamAccountResponse> GatherAccount()
         {
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            AccountRequest request = BuildRequestObject();
-            string endpoint = BuildRequestUrl(request);
-            AccountResponse response = await serverCommunicator.SendRequest(HttpMethod.Get, endpoint, request);
+            SteamAccountRequest request = BuildRequestObject();
 
-            // TODO: Do the mapping in a dedicated place
+            try
+            {
+                var response = await serverCommunicator.SendRequest(HttpMethod.Get, $"{botSettings.ServerUrl}/SteamAccount/{request.Username}", request);
 
-            logger.Debug(
-                MyOperation.AccountDetailsRetrieval,
-                OperationStatus.Success,
-                "Account details retrieved successfully",
-                new LogInfo(MyLogInfoKey.Username, response.Username));
+                logger.Debug(
+                    MyOperation.AccountDetailsRetrieval,
+                    OperationStatus.Success,
+                    new LogInfo(MyLogInfoKey.Username, response.Username));
 
-            return response;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(
+                    MyOperation.AccountDetailsRetrieval,
+                    OperationStatus.Failure,
+                    ex,
+                    new LogInfo(MyLogInfoKey.Username, request.Username));
+
+                throw;
+            }
         }
 
-        AccountRequest BuildRequestObject() => new()
+        SteamAccountRequest BuildRequestObject() => new()
         {
             Username = botSettings.Username,
             GiveawaysProvider = "SteamGifts"
         };
-
-        string BuildRequestUrl(AccountRequest request) =>
-            $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
-            $"?gaProvider=SteamGifts"; // TODO: Hardcoded
     }
 }

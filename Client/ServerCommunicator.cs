@@ -1,59 +1,42 @@
 using System;
 using System.Net.Http;
 using System.Security.Authentication;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web;
 
-using Newtonsoft.Json;
+using NuciAPI.Requests;
+using NuciAPI.Responses;
 using NuciSecurity.HMAC;
 
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Client.Models;
 
 namespace SteamGiveawaysBot.Client
 {
-    public class ServerCommunicator<TRequest>(
-        IHmacEncoder<TRequest> requestHmacEncoder,
-        BotSettings botSettings) : IServerCommunicator<TRequest>
-        where TRequest : class
+    public class ServerCommunicator<TRequest>(BotSettings botSettings) : IServerCommunicator<TRequest>
+        where TRequest : Request
     {
         readonly HttpClient httpClient = new();
 
+        protected BotSettings botSettings = botSettings ?? throw new ArgumentNullException(nameof(botSettings));
+
         public async Task<HttpResponseMessage> SendRequest(HttpMethod method, string endpoint, TRequest request)
         {
-            if (!endpoint.Contains("&hmac="))
-            {
-                string hmacToken = requestHmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
-                endpoint += $"&hmac={HttpUtility.UrlEncode(hmacToken)}";
-            }
+            request.HmacToken = HmacEncoder.GenerateToken(request, botSettings.SharedSecretKey);
 
-            HttpResponseMessage httpResponse = await SendHttpRequest(method, endpoint);
+            using HttpRequestMessage httpRequest = new(method, endpoint)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
+            };
+
+            HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
             await ValdiateHttpRespone(httpResponse);
 
             return httpResponse;
         }
 
-        async Task<HttpResponseMessage> SendHttpRequest(HttpMethod method, string endpoint)
-        {
-            if (method.Equals(HttpMethod.Get))
-            {
-                return await httpClient.GetAsync(endpoint);
-            }
-
-            if (method.Equals(HttpMethod.Post))
-            {
-                return await httpClient.PostAsync(endpoint, null);
-            }
-
-            throw new ArgumentException("Unsupported HTTP method");
-        }
-
         static async Task<ErrorResponse> DeserialiseErrorResponse(HttpResponseMessage httpResponse)
-        {
-            string responseString = await httpResponse.Content.ReadAsStringAsync();
-
-            return JsonConvert.DeserializeObject<ErrorResponse>(responseString);
-        }
+            => JsonSerializer.Deserialize<ErrorResponse>(await httpResponse.Content.ReadAsStringAsync());
 
         static async Task ValdiateHttpRespone(HttpResponseMessage httpResponse)
         {
@@ -64,15 +47,12 @@ namespace SteamGiveawaysBot.Client
 
             ErrorResponse errorResponse = await DeserialiseErrorResponse(httpResponse);
 
-            throw new Exception(errorResponse.ErrorMessage);
+            throw new Exception(errorResponse.Message);
         }
     }
 
-    public class ServerCommunicator<TRequest, TResponse>(
-        IHmacEncoder<TRequest> requestHmacEncoder,
-        IHmacEncoder<TResponse> responseHmacEncoder,
-        BotSettings botSettings) : ServerCommunicator<TRequest>(requestHmacEncoder, botSettings), IServerCommunicator<TRequest, TResponse>
-        where TRequest : class
+    public class ServerCommunicator<TRequest, TResponse>(BotSettings botSettings) : ServerCommunicator<TRequest>(botSettings), IServerCommunicator<TRequest, TResponse>
+        where TRequest : Request
         where TResponse : Response
     {
         // TODO: I don't like this 'new'
@@ -87,15 +67,11 @@ namespace SteamGiveawaysBot.Client
         }
 
         static async Task<TResponse> DeserialiseSuccessResponse(HttpResponseMessage httpResponse)
-        {
-            string responseString = await httpResponse.Content.ReadAsStringAsync();
+            => JsonSerializer.Deserialize<TResponse>(await httpResponse.Content.ReadAsStringAsync());
 
-            return JsonConvert.DeserializeObject<TResponse>(responseString);
-        }
-
-        void ValdiateResponse(TResponse response, string sharedSecretKey)
+        static void ValdiateResponse(TResponse response, string sharedSecretKey)
         {
-            if (!responseHmacEncoder.IsTokenValid(response.HmacToken, response, sharedSecretKey))
+            if (!HmacEncoder.IsTokenValid(response.HmacToken, response, sharedSecretKey))
             {
                 throw new AuthenticationException("The response HMAC token is not valid");
             }

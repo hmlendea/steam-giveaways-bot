@@ -6,6 +6,6 @@ namespace SteamGiveawaysBot.Client
 {
     public interface IAccountGatherer
     {
-        Task<AccountResponse> GatherAccount();
+        Task<SteamAccountResponse> GatherAccount();
     }
 }
