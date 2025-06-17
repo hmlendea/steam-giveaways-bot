@@ -63,7 +63,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton(loggingSettings)
                 .AddSingleton(steamAccount)
                 .AddSingleton<ILogger, NuciLogger>()
-                .AddSingleton<IServerCommunicator<AccountRequest, AccountResponse>, ServerCommunicator<AccountRequest, AccountResponse>>()
+                .AddSingleton<IServerCommunicator<SteamAccountRequest, SteamAccountResponse>, ServerCommunicator<SteamAccountRequest, SteamAccountResponse>>()
                 .AddSingleton<IServerCommunicator<RecordRewardRequest>, ServerCommunicator<RecordRewardRequest>>()
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()

@@ -11,19 +11,19 @@ namespace SteamGiveawaysBot.Client
 {
     public sealed class AccountGatherer(
         BotSettings botSettings,
-        IServerCommunicator<AccountRequest, AccountResponse> serverCommunicator,
+        IServerCommunicator<SteamAccountRequest, SteamAccountResponse> serverCommunicator,
         ILogger logger) : IAccountGatherer
     {
-        public async Task<AccountResponse> GatherAccount()
+        public async Task<SteamAccountResponse> GatherAccount()
         {
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            AccountRequest request = BuildRequestObject();
+            SteamAccountRequest request = BuildRequestObject();
             string endpoint = BuildRequestUrl(request);
-            AccountResponse response = await serverCommunicator.SendRequest(HttpMethod.Get, endpoint, request);
+            SteamAccountResponse response = await serverCommunicator.SendRequest(HttpMethod.Get, endpoint, request);
 
             // TODO: Do the mapping in a dedicated place
 
@@ -36,13 +36,13 @@ namespace SteamGiveawaysBot.Client
             return response;
         }
 
-        AccountRequest BuildRequestObject() => new()
+        SteamAccountRequest BuildRequestObject() => new()
         {
             Username = botSettings.Username,
             GiveawaysProvider = "SteamGifts"
         };
 
-        string BuildRequestUrl(AccountRequest request) =>
+        string BuildRequestUrl(SteamAccountRequest request) =>
             $"{botSettings.ServerUrl}/SteamAccount/{request.Username}" +
             $"?gaProvider=SteamGifts"; // TODO: Hardcoded
     }

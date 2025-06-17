@@ -28,7 +28,7 @@ namespace SteamGiveawaysBot.Service
         void GatherTheCredentials()
         {
             // TODO: Broken async
-            AccountResponse accountResponse = accountGatherer.GatherAccount().Result;
+            SteamAccountResponse accountResponse = accountGatherer.GatherAccount().Result;
 
             steamAccount.Username = accountResponse.Username;
             steamAccount.Password = accountResponse.Password;

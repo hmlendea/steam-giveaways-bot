@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using System.Web;
 
 using Newtonsoft.Json;
+using NuciAPI.Responses;
 using NuciSecurity.HMAC;
 
 using SteamGiveawaysBot.Configuration;
-using SteamGiveawaysBot.Client.Models;
 
 namespace SteamGiveawaysBot.Client
 {
@@ -64,7 +64,7 @@ namespace SteamGiveawaysBot.Client
 
             ErrorResponse errorResponse = await DeserialiseErrorResponse(httpResponse);
 
-            throw new Exception(errorResponse.ErrorMessage);
+            throw new Exception(errorResponse.Message);
         }
     }
 
