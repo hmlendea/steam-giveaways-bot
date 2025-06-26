@@ -11,6 +11,7 @@ using NuciLog;
 using NuciLog.Configuration;
 using NuciLog.Core;
 using NuciWeb;
+using NuciWeb.HTTP;
 using NuciWeb.Steam;
 using NuciWeb.Steam.Models;
 
@@ -128,31 +129,12 @@ namespace SteamGiveawaysBot
 
         static void WaitForInternet()
         {
-            bool isConnected = false;
+            logger.Info(
+                MyOperation.ConnectivityTest,
+                OperationStatus.Started,
+                "Waiting for internet access");
 
-            while (!isConnected)
-            {
-                try
-                {
-                    using (WebClient client = new())
-                    using (client.OpenRead("http://clients3.google.com/generate_204"))
-                    {
-                        isConnected = true;
-                        return;
-                    }
-                }
-                catch
-                {
-                    isConnected = false;
-                }
-
-                logger.Error(
-                    MyOperation.ConnectivityTest,
-                    OperationStatus.Failure,
-                    new LogInfo(MyLogInfoKey.RetryDelay, ConnectionWaitTime.TotalMilliseconds));
-
-                Thread.Sleep((int)ConnectionWaitTime.TotalMilliseconds);
-            }
+            NetworkUtils.WaitForInternetAccess(TimeSpan.FromDays(1));
         }
 
         static IConfiguration LoadConfiguration() => new ConfigurationBuilder()
