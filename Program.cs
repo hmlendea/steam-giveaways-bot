@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 
 using Microsoft.Extensions.Configuration;
@@ -10,7 +9,8 @@ using NuciCLI;
 using NuciLog;
 using NuciLog.Configuration;
 using NuciLog.Core;
-using NuciWeb;
+using NuciWeb.Automation;
+using NuciWeb.Automation.Selenium;
 using NuciWeb.HTTP;
 using NuciWeb.Steam;
 using NuciWeb.Steam.Models;
@@ -18,7 +18,6 @@ using NuciWeb.Steam.Models;
 using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Client;
-using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Processors.GiveawayProcessors;
@@ -67,7 +66,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton(webDriver)
-                .AddTransient<IWebProcessor, WebProcessor>()
+                .AddTransient<IWebProcessor, SeleniumWebProcessor>()
                 .AddSingleton<IGiveawayProcessor, SteamGiftsProcessor>()
                 .AddSingleton<ISteamProcessor, SteamProcessor>()
                 .AddSingleton<IBotService, BotService>()

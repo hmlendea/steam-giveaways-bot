@@ -20,15 +20,20 @@
     <PackageReference Include="NuciLog" Version="1.1.1" />
     <PackageReference Include="NuciLog.Core" Version="2.4.0" />
     <PackageReference Include="NuciSecurity.HMAC" Version="4.1.2" />
-    <PackageReference Include="NuciWeb" Version="3.1.1" />
+    <PackageReference Include="NuciWeb" Version="4.0.0" />
     <PackageReference Include="NuciWeb.HTTP" Version="1.1.0" />
-    <PackageReference Include="NuciWeb.Steam" Version="1.4.5" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../nuciweb.automation/NuciWeb.Automation.csproj" />
+    <ProjectReference Include="../nuciweb.automation.selenium/NuciWeb.Automation.Selenium.csproj" />
+    <ProjectReference Include="../nuciweb.steam/NuciWeb.Steam.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using System;
 
 using NuciLog.Core;
-using NuciWeb;
+using NuciWeb.Automation;
 using NuciWeb.Steam.Models;
 
 using SteamGiveawaysBot.Entities;

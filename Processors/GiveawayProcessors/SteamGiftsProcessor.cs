@@ -6,9 +6,8 @@ using System.Text.RegularExpressions;
 using NuciExtensions;
 using NuciLog.Core;
 using NuciWeb;
+using NuciWeb.Automation;
 using NuciWeb.Steam.Models;
-
-using OpenQA.Selenium;
 
 using SteamGiveawaysBot.Client;
 using SteamGiveawaysBot.Entities;
@@ -44,6 +43,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             MaximumPoints = 400;
 
             this.rewardSender = rewardSender;
+            this.webProcessor.RetryOnDomFailure = true;
         }
 
         public override void LogIn()
@@ -55,9 +55,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             webProcessor.GoToUrl(LogInUrl);
 
-            By privacyScreenshotSelector = By.ClassName("form__screenshot");
-            By usernameTextBoxSelector = By.XPath(@"//form/div[1]/div[2]/input");
-            By pointsSelector = By.ClassName("nav__points");
+            string privacyScreenshotSelector = Select.ByClass("form__screenshot");
+            string usernameTextBoxSelector = Select.ByXPath(@"//form/div[1]/div[2]/input");
+            string pointsSelector = Select.ByClass("nav__points");
 
             if (webProcessor.IsElementVisible(pointsSelector))
             {
@@ -72,10 +72,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             AcceptCookies();
 
-            webProcessor.Click(By.XPath(@"/html/body/header/nav/div[2]/div/a"));
-            webProcessor.Click(By.Id("imageLogin"));
+            webProcessor.Click(Select.ByXPath(@"/html/body/header/nav/div[2]/div/a"));
+            webProcessor.Click(Select.ById("imageLogin"));
 
-            webProcessor.WaitForElementToExist(By.ClassName("nav__left-container"), false);
+            webProcessor.WaitForElementToExist(Select.ByClass("nav__left-container"));
 
             if (webProcessor.DoesAnyElementExist(
                 privacyScreenshotSelector,
@@ -101,9 +101,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             webProcessor.GoToUrl(HomePageUrl);
 
-            By loginButtonSelector = By.ClassName("nav__sits");
-            By pointsSelector = By.ClassName("nav__points");
-            By suspensionsButtonSelector = By.XPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
+            string loginButtonSelector = Select.ByClass("nav__sits");
+            string pointsSelector = Select.ByClass("nav__points");
+            string suspensionsButtonSelector = Select.ByXPath(@"//div[contains(@class,'nav__button-container')]/a[@href='/suspensions']");
 
             webProcessor.WaitForAnyElementToExist(loginButtonSelector, pointsSelector);
 
@@ -132,14 +132,14 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             {
                 string baseXpath = "//div[@class='page__heading']/following-sibling::div/div[@class='giveaway__row-outer-wrap']/..";
 
-                By giveawayTitleSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
-                By giveawayEndTimeSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/span");
-                By giveawayPriceSelector = By.XPath($"{baseXpath}/div[{i}]/div/div/h2/span[last()]");
+                string giveawayTitleSelector = Select.ByXPath($"{baseXpath}/div[{i}]/div/div/h2/a[@class='giveaway__heading__name']");
+                string giveawayEndTimeSelector = Select.ByXPath($"{baseXpath}/div[{i}]/div/div/div[1]/div/span");
+                string giveawayPriceSelector = Select.ByXPath($"{baseXpath}/div[{i}]/div/div/h2/span[last()]");
 
-                string giveawayLink = webProcessor.GetHyperlink(giveawayTitleSelector, retryOnDomFailure: true);
-                string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp", retryOnDomFailure: true);
-                string gameTitle = webProcessor.GetText(giveawayTitleSelector, retryOnDomFailure: true);
-                string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector, retryOnDomFailure: true).Last();
+                string giveawayLink = webProcessor.GetHyperlink(giveawayTitleSelector);
+                string endTimeSelector = webProcessor.GetAttribute(giveawayEndTimeSelector, "data-timestamp");
+                string gameTitle = webProcessor.GetText(giveawayTitleSelector);
+                string priceString = webProcessor.GetTextOfMany(giveawayPriceSelector).Last();
                 string priceSubstring = priceString[1..][..(priceString.Length - 3)];
 
                 int price = int.Parse(priceSubstring);
@@ -160,11 +160,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             webProcessor.GoToUrl(giveaway.Url);
 
-            By enterButtonSelector = By.ClassName("sidebar__entry-insert");
-            By errorDivSelector = By.XPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
-            By errorASelector = By.XPath(@"//a[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+            string enterButtonSelector = Select.ByClass("sidebar__entry-insert");
+            string errorDivSelector = Select.ByXPath(@"//div[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
+            string errorASelector = Select.ByXPath(@"//a[contains(@class,'sidebar__error') or contains(@class,'sidebar__entry-delete')]");
 
-            webProcessor.WaitForAnyElementToBeVisible(TimeSpan.FromSeconds(3), enterButtonSelector, errorDivSelector);
+            webProcessor.WaitForAnyElementToBeVisible(enterButtonSelector, errorDivSelector);
 
             if (!webProcessor.IsElementVisible(enterButtonSelector))
             {
@@ -172,7 +172,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (webProcessor.IsElementVisible(errorDivSelector))
                 {
-                    errorText = webProcessor.GetText(errorDivSelector, retryOnDomFailure: true).Trim();
+                    errorText = webProcessor.GetText(errorDivSelector).Trim();
 
                     if (errorText.Contains("Remove Entry"))
                     {
@@ -181,7 +181,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 }
                 else if (webProcessor.IsElementVisible(errorASelector))
                 {
-                    errorText = webProcessor.GetText(errorASelector, retryOnDomFailure: true).Trim();
+                    errorText = webProcessor.GetText(errorASelector).Trim();
 
                     if (errorText.Contains("Sync Required"))
                     {
@@ -199,20 +199,21 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
         {
             webProcessor.GoToUrl(RewardsUrl);
 
-            By rewardItemSelector = By.ClassName("table__row-inner-wrap");
-
-            IList<IWebElement> rewardItems = webProcessor.GetElements(rewardItemSelector);
-
-            for (int i = 0; i < rewardItems.Count; i++)
+            for (int i = 0; i < 10; i++)
             {
                 string rewardItemXpath = $"//div[@class='table__rows']/div[{i + 1}]/div[1]";
 
-                By keyStatusSelector = By.XPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
-                By gameTitleSelector = By.XPath($"{rewardItemXpath}/div[2]/p/a");
-                By gameThumbnailSelector = By.XPath($"{rewardItemXpath}/div[1]/a");
-                By viewKeyButtonSelector = By.XPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
-                By keyClipboardSelector = By.XPath($"{rewardItemXpath}/div[3]/div/i[1]");
-                By receivedRadioSelector = By.XPath($"{rewardItemXpath}/div[4]/div[1]/i");
+                if (!webProcessor.DoesElementExist(Select.ByXPath(rewardItemXpath)))
+                {
+                    break;
+                }
+
+                string keyStatusSelector = Select.ByXPath($"{rewardItemXpath}/div[contains(@class,'table__column--width-medium')]");
+                string gameTitleSelector = Select.ByXPath($"{rewardItemXpath}/div[2]/p/a");
+                string gameThumbnailSelector = Select.ByXPath($"{rewardItemXpath}/div[1]/a");
+                string viewKeyButtonSelector = Select.ByXPath($"{rewardItemXpath}/div[3]/div[@class='view_key_btn']");
+                string keyClipboardSelector = Select.ByXPath($"{rewardItemXpath}/div[3]/div/i[1]");
+                string receivedRadioSelector = Select.ByXPath($"{rewardItemXpath}/div[4]/div[1]/i");
 
                 if (webProcessor.DoesElementExist(viewKeyButtonSelector))
                 {
@@ -222,7 +223,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (!webProcessor.DoesElementExist(keyClipboardSelector))
                 {
-                    string keyStatus = webProcessor.GetText(keyStatusSelector, retryOnDomFailure: true).Trim();
+                    string keyStatus = webProcessor.GetText(keyStatusSelector).Trim();
 
                     if (keyStatus.Length <= 3)
                     {
@@ -233,10 +234,10 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 rewardSender.RecordReward(new()
                 {
                     GiveawaysProvider = ProviderName,
-                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector, retryOnDomFailure: true).Split('/')[^2],
+                    GiveawayId = webProcessor.GetHyperlink(gameTitleSelector).Split('/')[^2],
                     WinnerUsername = steamAccount.Username,
-                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style", retryOnDomFailure: true), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
-                    ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text", retryOnDomFailure: true)
+                    SteamAppId = Regex.Match(webProcessor.GetAttribute(gameThumbnailSelector, "style"), ".*apps\\/([0-9]*)\\/.*").Groups[1].Value,
+                    ActivationKey = webProcessor.GetAttribute(keyClipboardSelector, "data-clipboard-text")
                 });
 
                 if (webProcessor.IsElementVisible(receivedRadioSelector))
@@ -248,9 +249,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         void AcceptCookies()
         {
-            By cookieOverlaySelector = By.XPath(@"//div[contains(@class,'qc-cmp-cleanslate')]");
-            By moreOptionsButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[1]");
-            By agreeSelectedButtonSelector = By.XPath(@"//div[contains(@class,'qc-cmp2-buttons-desktop')]/button[1]");
+            string cookieOverlaySelector = Select.ByXPath(@"//div[contains(@class,'qc-cmp-cleanslate')]");
+            string moreOptionsButtonSelector = Select.ByXPath(@"//div[contains(@class,'qc-cmp2-summary-buttons')]/button[1]");
+            string agreeSelectedButtonSelector = Select.ByXPath(@"//div[contains(@class,'qc-cmp2-buttons-desktop')]/button[1]");
 
             webProcessor.WaitForAnyElementToBeVisible(
                 cookieOverlaySelector,
@@ -270,7 +271,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentPoints()
         {
-            string pointsText = webProcessor.GetText(By.ClassName("nav__points"), retryOnDomFailure: true);
+            string pointsText = webProcessor.GetText(Select.ByClass("nav__points"));
 
             if (string.IsNullOrWhiteSpace(pointsText))
             {
@@ -282,7 +283,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         int GatherCurrentRewards()
         {
-            string rewardsText = webProcessor.GetText(By.XPath(@"/html/body/header/nav/div[2]/div[2]/a"), retryOnDomFailure: true);
+            string rewardsText = webProcessor.GetText(Select.ByXPath(@"/html/body/header/nav/div[2]/div[2]/a"));
 
             if (string.IsNullOrWhiteSpace(rewardsText))
             {

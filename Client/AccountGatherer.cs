@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NuciAPI.Client;
 using NuciAPI.Responses;
 using NuciLog.Core;
-using NuciSecurity.HMAC;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
