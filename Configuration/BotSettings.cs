@@ -4,10 +4,12 @@ namespace SteamGiveawaysBot.Configuration
     {
         public string ServerUrl { get; set; }
 
+        public string ServerApiKey { get; set; }
+
         public string Username { get; set; }
 
         public string SharedSecretKey { get; set; }
-        
+
         public int PageLoadTimeout { get; set; }
     }
 }
