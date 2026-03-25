@@ -8,12 +8,14 @@ using SteamGiveawaysBot.Entities;
 using SteamGiveawaysBot.Logging;
 using SteamGiveawaysBot.Client.Models;
 using System;
+using NuciAPI.Client;
+using NuciAPI.Responses;
 
 namespace SteamGiveawaysBot.Client
 {
     public sealed class RewardSender(
         BotSettings botSettings,
-        IServerCommunicator<RecordRewardRequest> serverCommunicator,
+        INuciApiClient server,
         ILogger logger) : IRewardSender
     {
         public async Task RecordReward(Reward reward)
@@ -27,7 +29,16 @@ namespace SteamGiveawaysBot.Client
             RecordRewardRequest request = BuildRequestObject(reward);
             try
             {
-                await serverCommunicator.SendRequest(HttpMethod.Post, $"{botSettings.ServerUrl}/Rewards", request);
+                await server.SendRequestAsync<RecordRewardRequest, NuciApiSuccessResponse>(
+                    HttpMethod.Post,
+                    request,
+                    new()
+                    {
+                        ClientId = $"{nameof(SteamGiveawaysBot)}.{Environment.MachineName}.{botSettings.Username}",
+                        BearerToken = botSettings.ServerApiKey,
+                        HmacSharedSecretKey = botSettings.SharedSecretKey,
+                    },
+                    "Rewards");
 
                 logger.Debug(
                     MyOperation.RewardRecording,

@@ -1,9 +1,10 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-
+using NuciAPI.Client;
+using NuciAPI.Responses;
 using NuciLog.Core;
-
+using NuciSecurity.HMAC;
 using SteamGiveawaysBot.Client.Models;
 using SteamGiveawaysBot.Configuration;
 using SteamGiveawaysBot.Logging;
@@ -12,28 +13,44 @@ namespace SteamGiveawaysBot.Client
 {
     public sealed class AccountGatherer(
         BotSettings botSettings,
-        IServerCommunicator<SteamAccountRequest, SteamAccountResponse> serverCommunicator,
+        INuciApiClient server,
         ILogger logger) : IAccountGatherer
     {
-        public async Task<SteamAccountResponse> GatherAccount()
+        public async Task<GetSteamAccountResponse> GatherAccount()
         {
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
                 new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
 
-            SteamAccountRequest request = BuildRequestObject();
+            GetSteamAccountRequest request = BuildRequestObject();
 
             try
             {
-                var response = await serverCommunicator.SendRequest(HttpMethod.Get, $"{botSettings.ServerUrl}/SteamAccount/{request.Username}", request);
+                NuciApiResponse response = await server.SendRequestAsync<GetSteamAccountRequest, GetSteamAccountResponse>(
+                    HttpMethod.Get,
+                    request,
+                    new()
+                    {
+                        ClientId = $"{nameof(SteamGiveawaysBot)}.{Environment.MachineName}.{botSettings.Username}",
+                        BearerToken = botSettings.ServerApiKey,
+                        HmacSharedSecretKey = botSettings.SharedSecretKey,
+                    },
+                    $"SteamAccount/{request.Username}");
+
+                if (!response.IsSuccessful)
+                {
+                    throw new HttpRequestException(response.Message);
+                }
+
+                GetSteamAccountResponse accountResponse = response as GetSteamAccountResponse;
 
                 logger.Debug(
                     MyOperation.AccountDetailsRetrieval,
                     OperationStatus.Success,
-                    new LogInfo(MyLogInfoKey.Username, response.Username));
+                    new LogInfo(MyLogInfoKey.Username, accountResponse.Username));
 
-                return response;
+                return accountResponse;
             }
             catch (Exception ex)
             {
@@ -47,7 +64,7 @@ namespace SteamGiveawaysBot.Client
             }
         }
 
-        SteamAccountRequest BuildRequestObject() => new()
+        GetSteamAccountRequest BuildRequestObject() => new()
         {
             Username = botSettings.Username,
             GiveawaysProvider = "SteamGifts"

@@ -5,7 +5,7 @@ using System.Threading;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using NuciAPI.Client;
 using NuciCLI;
 using NuciLog;
 using NuciLog.Configuration;
@@ -64,8 +64,6 @@ namespace SteamGiveawaysBot
                 .AddSingleton(loggingSettings)
                 .AddSingleton(steamAccount)
                 .AddSingleton<ILogger, NuciLogger>()
-                .AddSingleton<IServerCommunicator<SteamAccountRequest, SteamAccountResponse>, ServerCommunicator<SteamAccountRequest, SteamAccountResponse>>()
-                .AddSingleton<IServerCommunicator<RecordRewardRequest>, ServerCommunicator<RecordRewardRequest>>()
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
                 .AddSingleton<IRewardSender, RewardSender>()
                 .AddSingleton(webDriver)
@@ -73,6 +71,7 @@ namespace SteamGiveawaysBot
                 .AddSingleton<IGiveawayProcessor, SteamGiftsProcessor>()
                 .AddSingleton<ISteamProcessor, SteamProcessor>()
                 .AddSingleton<IBotService, BotService>()
+                .AddTransient<INuciApiClient>(provider => new NuciApiClient(botSettings.ServerUrl))
                 .BuildServiceProvider();
 
             logger = serviceProvider.GetService<ILogger>();
