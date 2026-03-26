@@ -5,9 +5,8 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuciAPI.Client;
-using NuciCLI;
+using NuciCLI.Arguments;
 using NuciLog;
-using NuciLog.Configuration;
 using NuciLog.Core;
 using NuciWeb.Automation;
 using NuciWeb.Automation.Selenium;
@@ -34,7 +33,6 @@ namespace SteamGiveawaysBot
 
         static BotSettings botSettings;
         static DebugSettings debugSettings;
-        static NuciLoggerSettings loggingSettings;
         static SteamAccount steamAccount;
         static IWebDriver webDriver;
 
@@ -46,21 +44,19 @@ namespace SteamGiveawaysBot
         {
             botSettings = new BotSettings();
             debugSettings = new DebugSettings();
-            loggingSettings = new NuciLoggerSettings();
             steamAccount = new SteamAccount();
 
             IConfiguration config = LoadConfiguration();
             config.Bind(nameof(BotSettings), botSettings);
             config.Bind(nameof(DebugSettings), debugSettings);
-            config.Bind(nameof(NuciLoggerSettings), loggingSettings);
 
             LoadBotCredentials(args);
             webDriver = WebDriverInitialiser.InitialiseAvailableWebDriver(debugSettings.IsDebugMode);
 
             IServiceProvider serviceProvider = new ServiceCollection()
+                .AddNuciLoggerSettings(config)
                 .AddSingleton(botSettings)
                 .AddSingleton(debugSettings)
-                .AddSingleton(loggingSettings)
                 .AddSingleton(steamAccount)
                 .AddSingleton<ILogger, NuciLogger>()
                 .AddSingleton<IAccountGatherer, AccountGatherer>()
@@ -106,15 +102,46 @@ namespace SteamGiveawaysBot
 
         static void LoadBotCredentials(string[] args)
         {
-            if (CliArgumentsReader.HasOption(args, UsernameOptions))
+            ArgumentParser parser = new();
+
+            foreach (string usernameOption in UsernameOptions)
             {
-                botSettings.Username = CliArgumentsReader.GetOptionValue(args, UsernameOptions);
+                parser.AddArgument(usernameOption, string.Empty, false, null);
             }
 
-            if (CliArgumentsReader.HasOption(args, SecretKeyOptions))
+            foreach (string secretKeyOption in SecretKeyOptions)
             {
-                botSettings.SharedSecretKey = CliArgumentsReader.GetOptionValue(args, SecretKeyOptions);
+                parser.AddArgument(secretKeyOption, string.Empty, false, null);
             }
+
+            ArgumentsCollection parsedArgs = parser.ParseArgs(args);
+
+            if (TryGetOptionValue(parsedArgs, UsernameOptions, out string username))
+            {
+                botSettings.Username = username;
+            }
+
+            if (TryGetOptionValue(parsedArgs, SecretKeyOptions, out string sharedSecretKey))
+            {
+                botSettings.SharedSecretKey = sharedSecretKey;
+            }
+        }
+
+        static bool TryGetOptionValue(ArgumentsCollection parsedArgs, string[] options, out string value)
+        {
+            foreach (string option in options)
+            {
+                if (parsedArgs.Has(option))
+                {
+                    value = parsedArgs.Get<string>(option);
+
+                    return true;
+                }
+            }
+
+            value = null;
+
+            return false;
         }
 
         static void RunLoop(IServiceProvider serviceProvider)
@@ -146,8 +173,7 @@ namespace SteamGiveawaysBot
                 return;
             }
 
-            string directory = Path.GetDirectoryName(loggingSettings.LogFilePath);
-            string filePath = Path.Combine(directory, debugSettings.CrashScreenshotFileName);
+            string filePath = debugSettings.CrashScreenshotFileName;
 
             ((ITakesScreenshot)webDriver)
                 .GetScreenshot()
