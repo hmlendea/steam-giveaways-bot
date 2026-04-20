@@ -55,7 +55,7 @@ namespace SteamGiveawaysBot.Service
                     new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
             }
 
-            logger.Debug(
+            logger.Info(
                 MyOperation.SteamLogIn,
                 OperationStatus.Success,
                 new LogInfo(MyLogInfoKey.Username, steamAccount.Username));

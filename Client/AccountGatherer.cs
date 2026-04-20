@@ -44,7 +44,7 @@ namespace SteamGiveawaysBot.Client
 
                 GetSteamAccountResponse accountResponse = response as GetSteamAccountResponse;
 
-                logger.Debug(
+                logger.Info(
                     MyOperation.AccountDetailsRetrieval,
                     OperationStatus.Success,
                     new LogInfo(MyLogInfoKey.Username, accountResponse.Username));

@@ -116,7 +116,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                     LastRewardsChekingDate = DateTime.Now;
 
-                    logger.Debug(MyOperation.RewardsProcessing, OperationStatus.Success);
+                    logger.Info(MyOperation.RewardsProcessing, OperationStatus.Success);
                 }
 
                 if (CurrentPoints >= MinimumPoints)

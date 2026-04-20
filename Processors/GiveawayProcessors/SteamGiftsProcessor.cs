@@ -62,7 +62,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             if (webProcessor.IsElementVisible(pointsSelector))
             {
                 IsLoggedIn = true;
-                logger.Debug(
+                logger.Info(
                     MyOperation.SteamGiftsLogIn,
                     OperationStatus.Success,
                     "Already logged in");
@@ -94,7 +94,9 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             IsLoggedIn = true;
 
-            logger.Debug(MyOperation.SteamGiftsLogIn, OperationStatus.Success);
+            logger.Info(
+                MyOperation.SteamGiftsLogIn,
+                OperationStatus.Success);
         }
 
         protected override void GatherInfo()
@@ -257,7 +259,7 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 cookieOverlaySelector,
                 moreOptionsButtonSelector);
 
-            logger.Debug(
+            logger.Info(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.InProgress,
                 "Accepting the cookies");

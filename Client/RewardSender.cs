@@ -40,7 +40,7 @@ namespace SteamGiveawaysBot.Client
                     },
                     "Rewards");
 
-                logger.Debug(
+                logger.Info(
                     MyOperation.RewardRecording,
                     OperationStatus.Success,
                     new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
