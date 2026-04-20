@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NuciAPI.Client;
@@ -17,10 +20,14 @@ namespace SteamGiveawaysBot.Client
     {
         public async Task<GetSteamAccountResponse> GatherAccount()
         {
+            IEnumerable<LogInfo> logInfos = [
+                new(MyLogInfoKey.SgbUser, botSettings.Username)
+            ];
+
             logger.Info(
                 MyOperation.AccountDetailsRetrieval,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+                logInfos);
 
             GetSteamAccountRequest request = BuildRequestObject();
 
@@ -44,20 +51,22 @@ namespace SteamGiveawaysBot.Client
 
                 GetSteamAccountResponse accountResponse = response as GetSteamAccountResponse;
 
+                logInfos = logInfos.Append(new(MyLogInfoKey.Username, accountResponse.Username));
+
                 logger.Info(
                     MyOperation.AccountDetailsRetrieval,
                     OperationStatus.Success,
-                    new LogInfo(MyLogInfoKey.Username, accountResponse.Username));
+                    logInfos);
 
                 return accountResponse;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 logger.Error(
                     MyOperation.AccountDetailsRetrieval,
                     OperationStatus.Failure,
-                    ex,
-                    new LogInfo(MyLogInfoKey.Username, request.Username));
+                    exception,
+                    logInfos);
 
                 throw;
             }

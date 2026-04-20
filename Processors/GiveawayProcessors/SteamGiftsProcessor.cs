@@ -48,10 +48,15 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
         public override void LogIn()
         {
+            IEnumerable<LogInfo> logInfos =
+            [
+                new(MyLogInfoKey.Username, steamAccount.Username)
+            ];
+
             logger.Info(
                 MyOperation.SteamGiftsLogIn,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+                logInfos);
 
             webProcessor.GoToUrl(LogInUrl);
 
@@ -96,7 +101,8 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
             logger.Info(
                 MyOperation.SteamGiftsLogIn,
-                OperationStatus.Success);
+                OperationStatus.Success,
+                logInfos);
         }
 
         protected override void GatherInfo()
