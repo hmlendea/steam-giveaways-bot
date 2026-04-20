@@ -1,5 +1,5 @@
 using System;
-
+using System.Collections.Generic;
 using NuciLog.Core;
 using NuciWeb.Automation;
 using NuciWeb.Steam.Models;
@@ -107,16 +107,23 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
 
                 if (CurrentRewards > 0 && DateTime.Now > LastRewardsChekingDate + RewardsCheckingInterval)
                 {
+                    IEnumerable<LogInfo> logInfos = [
+                        new(MyLogInfoKey.RewardsCount, CurrentRewards)
+                    ];
+
                     logger.Info(
                         MyOperation.RewardsProcessing,
                         OperationStatus.Started,
-                        new LogInfo(MyLogInfoKey.RewardsCount, CurrentRewards));
+                        logInfos);
 
                     ProcessRewards();
 
                     LastRewardsChekingDate = DateTime.Now;
 
-                    logger.Debug(MyOperation.RewardsProcessing, OperationStatus.Success);
+                    logger.Info(
+                        MyOperation.RewardsProcessing,
+                        OperationStatus.Success,
+                        logInfos);
                 }
 
                 if (CurrentPoints >= MinimumPoints)
@@ -159,6 +166,11 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
             LastProcessedGiveaway = giveaway;
             NextCheckTime = giveaway.EndTime.AddSeconds(-5);
 
+            IEnumerable<LogInfo> logInfos = [
+                new(MyLogInfoKey.GiveawayId, giveaway.Id),
+                new(MyLogInfoKey.EndTime, giveawayEndTimestamp)
+            ];
+
             try
             {
                 JoinGiveaway(giveaway);
@@ -166,19 +178,17 @@ namespace SteamGiveawaysBot.Processors.GiveawayProcessors
                 logger.Info(
                     MyOperation.JoinGiveaway,
                     OperationStatus.Success,
-                    new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
+                    logInfos,
                     new LogInfo(MyLogInfoKey.Price, giveaway.Price),
-                    new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle),
-                    new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
+                    new LogInfo(MyLogInfoKey.GameTitle, giveaway.GameTitle));
             }
             catch (UnjoinableGiveawayException ex)
             {
                 logger.Warn(
                     MyOperation.JoinGiveaway,
                     OperationStatus.Failure,
-                    new LogInfo(MyLogInfoKey.GiveawayId, giveaway.Id),
-                    new LogInfo(MyLogInfoKey.Reason, ex.Reason),
-                    new LogInfo(MyLogInfoKey.EndTime, giveawayEndTimestamp));
+                    logInfos,
+                    new LogInfo(MyLogInfoKey.Reason, ex.Reason));
             }
         }
     }

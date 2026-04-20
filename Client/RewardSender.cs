@@ -10,6 +10,7 @@ using SteamGiveawaysBot.Client.Models;
 using System;
 using NuciAPI.Client;
 using NuciAPI.Responses;
+using System.Collections.Generic;
 
 namespace SteamGiveawaysBot.Client
 {
@@ -20,11 +21,15 @@ namespace SteamGiveawaysBot.Client
     {
         public async Task RecordReward(Reward reward)
         {
+            IEnumerable<LogInfo> logInfos = [
+                new(MyLogInfoKey.GiveawayId, reward.GiveawayId),
+                new(MyLogInfoKey.SgbUser, botSettings.Username)
+            ];
+
             logger.Info(
                 MyOperation.RewardRecording,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
-                new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+                logInfos);
 
             RecordRewardRequest request = BuildRequestObject(reward);
             try
@@ -40,11 +45,10 @@ namespace SteamGiveawaysBot.Client
                     },
                     "Rewards");
 
-                logger.Debug(
+                logger.Info(
                     MyOperation.RewardRecording,
                     OperationStatus.Success,
-                    new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
-                    new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+                    logInfos);
             }
             catch (Exception ex)
             {
@@ -52,8 +56,7 @@ namespace SteamGiveawaysBot.Client
                     MyOperation.RewardRecording,
                     OperationStatus.Failure,
                     ex,
-                    new LogInfo(MyLogInfoKey.GiveawayId, reward.GiveawayId),
-                    new LogInfo(MyLogInfoKey.SgbUser, botSettings.Username));
+                    logInfos);
 
                 throw;
             }

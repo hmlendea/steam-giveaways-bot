@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Security.Authentication;
 
 using NuciLog.Core;
@@ -36,29 +37,34 @@ namespace SteamGiveawaysBot.Service
 
         void LogIntoSteam()
         {
+            IEnumerable<LogInfo> logInfos =
+            [
+                new(MyLogInfoKey.Username, steamAccount.Username)
+            ];
+
             logger.Info(
                 MyOperation.SteamLogIn,
                 OperationStatus.Started,
-                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+                logInfos);
 
             try
             {
                 steamProcessor.LogIn(steamAccount);
                 steamProcessor.VisitChat();
             }
-            catch (AuthenticationException ex)
+            catch (AuthenticationException exception)
             {
                 logger.Error(
                     MyOperation.SteamLogIn,
                     OperationStatus.Failure,
-                    ex,
-                    new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+                    exception,
+                    logInfos);
             }
 
-            logger.Debug(
+            logger.Info(
                 MyOperation.SteamLogIn,
                 OperationStatus.Success,
-                new LogInfo(MyLogInfoKey.Username, steamAccount.Username));
+                logInfos);
         }
 
         void JoinGiveaways()
