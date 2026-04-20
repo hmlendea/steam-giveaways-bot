@@ -10,7 +10,6 @@ using SteamGiveawaysBot.Client.Models;
 using System;
 using NuciAPI.Client;
 using NuciAPI.Responses;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace SteamGiveawaysBot.Client
